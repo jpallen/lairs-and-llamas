@@ -74,6 +74,7 @@ export function DiceRollLine({ roll, animate }: Props) {
           </Text>
         </>
       )}
+      {roll.description && <Text color={DIE_COLOR}> — {roll.description}</Text>}
     </Text>
   );
 }

@@ -97,11 +97,14 @@ Maintain `JOURNAL.md` as a running log of the campaign. **Append a new paragraph
 
 **Always use `roll_dice.py` to roll dice** - never simulate or make up dice results.
 
+Use the `--desc` flag to label each roll. Make one call per roll so each gets its own label:
+
 ```bash
-python roll_dice.py 1d20        # Attack roll, ability check, saving throw
-python roll_dice.py 2d6         # Greatsword damage
-python roll_dice.py 8d6         # Fireball damage
-python roll_dice.py 4d6 1d20    # Multiple dice, shows total
+python roll_dice.py --desc "Pip's Initiative" 1d20
+python roll_dice.py --desc "Aldric's Attack Roll" 1d20
+python roll_dice.py --desc "Aldric's Greatsword Damage" 2d6
+python roll_dice.py --desc "Fireball Damage" 8d6
+python roll_dice.py --desc "Brynn's Longsword + Divine Smite" 1d8 2d8
 ```
 
 Call this script automatically whenever:
@@ -127,6 +130,10 @@ Damage: 1d8+3 = 7 slashing damage. Orc has 15 HP, now at 8 HP.
 
 Aldric's blade catches the orc across the ribs, drawing a howl of pain. The creature staggers but keeps its feet, snarling as it raises its greataxe for a counterstrike.
 ```
+
+## Pacing
+
+Do not try to resolve too much in a single turn. Focus on the next one or two character actions — roll the dice, narrate the consequences, and stop. You do not need to orchestrate a whole staged narrative sequence in one go. Keep turns short and responsive. If there are more actions to resolve, the player will prompt you to continue.
 
 ## Narrative Format
 

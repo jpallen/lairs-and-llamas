@@ -112,6 +112,7 @@ export function syncTemplateFiles(id: string): void {
   const gameDir = getGameDir(id);
   const templatesDir = getTemplatesDir();
   cpSync(join(templatesDir, "SYSTEM.md"), join(gameDir, "SYSTEM.md"));
+  cpSync(join(templatesDir, "roll_dice.py"), join(gameDir, "roll_dice.py"));
 }
 
 export function loadGameMeta(id: string): GameMeta {
@@ -148,6 +149,7 @@ export function loadSessionHistory(gameId: string, sessionId: string): ChatMessa
 
     // Skip non-message entries
     if (entry.isMeta) continue;
+    if (entry.isVisibleInTranscriptOnly) continue;
 
     if (entry.type === "user" && entry.message?.role === "user") {
       const content = entry.message.content;

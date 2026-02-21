@@ -18,6 +18,7 @@ interface Props {
   isProcessing: boolean;
   debugMode?: boolean;
   currentToolCall: ToolCallInfo | null;
+  statusMessage?: string | null;
   isActive?: boolean;
 }
 
@@ -64,7 +65,7 @@ function getStatusLabel(toolCall: ToolCallInfo | null, isThinking: boolean): str
   return `${toolName}...`;
 }
 
-export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode, currentToolCall, isActive = true }: Props) {
+export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode, currentToolCall, statusMessage, isActive = true }: Props) {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [lastUserMessageCount, setLastUserMessageCount] = useState(0);
 
@@ -96,12 +97,12 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
 
       if (!msg.content && !msg.isStreaming) continue;
 
-      if (lines.length > 0) {
-        lines.push({ text: "", role: "blank" });
-      }
-
       if (msg.role === "assistant") {
         const displayContent = debugMode ? (msg.content || "") : stripDmThinking(msg.content || "");
+        if (!displayContent && !msg.isStreaming) continue;
+        if (lines.length > 0) {
+          lines.push({ text: "", role: "blank" });
+        }
         const formatted = formatMarkdown(displayContent, contentWidth);
         for (const fl of formatted) {
           if (fl.type === "table-border") {
@@ -113,6 +114,9 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
           }
         }
       } else {
+        if (lines.length > 0) {
+          lines.push({ text: "", role: "blank" });
+        }
         const wrapped = wordWrap(msg.content || "", contentWidth);
         for (const line of wrapped) {
           lines.push({ text: line, role: msg.role });
@@ -120,25 +124,25 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
       }
     }
 
-    if (isProcessing) {
+    if (isProcessing || statusMessage) {
       const lastAssistant = [...messages].reverse().find(m => m.role === "assistant");
       const lastThinking = [...messages].reverse().find(m => m.role === "thinking");
-      const isCurrentlyThinking = !!lastThinking?.isStreaming &&
-        (!lastAssistant || !stripDmThinking(lastAssistant.content || ""));
+      const hasVisibleContent = !!lastAssistant?.isStreaming &&
+        stripDmThinking(lastAssistant.content || "").length > 0;
+      const isCurrentlyThinking = !hasVisibleContent && (
+        !!lastThinking?.isStreaming ||
+        (!!lastAssistant?.isStreaming && /<thinking>/.test(lastAssistant.content || ""))
+      );
 
-      const statusLabel = getStatusLabel(currentToolCall, isCurrentlyThinking);
-      if (statusLabel) {
-        const hasVisibleContent = !!lastAssistant?.isStreaming &&
-          stripDmThinking(lastAssistant.content || "").length > 0;
-        if (!hasVisibleContent) {
-          lines.push({ text: "", role: "blank" });
-          lines.push({ text: statusLabel, role: "status" });
-        }
+      const statusLabel = statusMessage ?? getStatusLabel(currentToolCall, isCurrentlyThinking);
+      if (statusLabel && !hasVisibleContent) {
+        lines.push({ text: "", role: "blank" });
+        lines.push({ text: statusLabel, role: "status" });
       }
     }
 
     return lines;
-  }, [messages, contentWidth, debugMode, isProcessing, currentToolCall]);
+  }, [messages, contentWidth, debugMode, isProcessing, currentToolCall, statusMessage]);
 
   const maxOffset = Math.max(0, allLines.length - 1);
 

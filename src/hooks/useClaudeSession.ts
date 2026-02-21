@@ -12,6 +12,8 @@ export function stripDmThinking(content: string): string {
   let result = content.replace(THINKING_TAG_CLOSED_RE, "");
   // Strip unclosed <thinking>... at the end (still streaming)
   result = result.replace(THINKING_TAG_OPEN_RE, "");
+  // Collapse runs of 3+ newlines down to 2 (one blank line)
+  result = result.replace(/\n{3,}/g, "\n\n");
   return result.trim();
 }
 
@@ -37,6 +39,7 @@ export function useClaudeSession({
     null
   );
   const [isProcessing, setIsProcessing] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const sessionIdRef = useRef<string | null>(initialSessionId);
   const onSessionInitRef = useRef(onSessionInit);
@@ -102,6 +105,18 @@ export function useClaudeSession({
           sessionIdRef.current = msg.session_id;
           onSessionInitRef.current(msg.session_id);
           debug("Session initialized:", msg.session_id);
+          continue;
+        }
+
+        if (msg.type === "system" && (msg as any).subtype === "compact_boundary") {
+          debug("Context compacted, pre_tokens:", (msg as any).compact_metadata?.pre_tokens);
+          continue;
+        }
+
+        if (msg.type === "system" && (msg as any).subtype === "status") {
+          const status = (msg as any).status;
+          debug("System status:", status);
+          setStatusMessage(status === "compacting" ? "Compacting context..." : null);
           continue;
         }
 
@@ -272,7 +287,7 @@ export function useClaudeSession({
           resume: sessionIdRef.current ?? undefined,
           settingSources: ["project"],
           model: "claude-opus-4-6",
-          maxThinkingTokens: 10000,
+          maxThinkingTokens: 1000,
         },
       });
 
@@ -291,7 +306,7 @@ export function useClaudeSession({
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { messages, currentToolCall, isProcessing, sendMessage };
+  return { messages, currentToolCall, isProcessing, statusMessage, sendMessage };
 }
 
 

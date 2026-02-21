@@ -31,7 +31,7 @@ type OverlayMode = "none" | "menu" | "character-sheet";
 const BORDER = "#8B4513";
 
 export function App({ systemPrompt, cwd, gameDir, debugMode, showHelp, initialSessionId, initialMessages, initialPrompt, onSessionInit, onToggleHelp, onToggleDebug, onBack, onQuit }: AppProps) {
-  const { messages, currentToolCall, isProcessing, sendMessage } =
+  const { messages, currentToolCall, isProcessing, statusMessage, sendMessage } =
     useClaudeSession({ systemPrompt, cwd, initialSessionId, initialMessages, initialPrompt, onSessionInit });
 
   const [overlayMode, setOverlayMode] = useState<OverlayMode>("none");
@@ -152,6 +152,7 @@ export function App({ systemPrompt, cwd, gameDir, debugMode, showHelp, initialSe
               isProcessing={isProcessing}
               debugMode={debugMode}
               currentToolCall={currentToolCall}
+              statusMessage={statusMessage}
               isActive={overlayMode === "none"}
             />
             <InputBar onSubmit={sendMessage} isProcessing={isProcessing} disabled={overlayMode !== "none"} />

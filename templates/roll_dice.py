@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Roll D&D dice from command line arguments."""
 
+import argparse
 import random
 import re
 import sys
@@ -20,26 +21,28 @@ def roll_dice(count, sides):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: roll_dice.py <dice> [<dice> ...]")
-        print("Example: roll_dice.py 2d10 1d20 4d6")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Roll D&D dice")
+    parser.add_argument("dice", nargs="+", help="Dice specs (e.g. 2d10 1d20)")
+    parser.add_argument("-d", "--desc", help="Description for the roll (e.g. \"Pip's Initiative\")")
+    args = parser.parse_args()
+
+    prefix = f"{args.desc} | " if args.desc else ""
 
     total = 0
-    for die_str in sys.argv[1:]:
+    for die_str in args.dice:
         try:
             count, sides = parse_die(die_str)
             rolls = roll_dice(count, sides)
             roll_total = sum(rolls)
             total += roll_total
             rolls_str = ", ".join(str(r) for r in rolls)
-            print(f"{die_str}: [{rolls_str}] = {roll_total}")
+            print(f"{prefix}{die_str}: [{rolls_str}] = {roll_total}")
         except ValueError as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
-    if len(sys.argv) > 2:
-        print(f"Total: {total}")
+    if len(args.dice) > 1:
+        print(f"{prefix}Total: {total}")
 
 
 if __name__ == "__main__":
