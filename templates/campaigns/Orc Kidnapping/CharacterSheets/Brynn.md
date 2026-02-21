@@ -113,7 +113,7 @@
 
 | Level | Total | Expended |
 |-------|-------|----------|
-| 1st | 2 | 1 |
+| 1st | 2 | 0 |
 | 2nd | - | - |
 | 3rd | - | - |
 | 4th | - | - |
@@ -220,7 +220,6 @@ She encountered Aldric on the road, the human soldier near death from his wounds
 ### Allies & Organizations
 - Temple of Moradin's Hearth (estranged)
 - Aldric Stoneheart (traveling companion)
-- Two wolves (befriended at orc lair entrance — one grey, one brown)
 
 ### Current Conditions
 - None

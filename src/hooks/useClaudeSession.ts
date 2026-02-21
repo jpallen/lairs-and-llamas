@@ -1,16 +1,48 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import { parseDiceOutput } from "../types.js";
 import type { ChatMessage, ToolCallInfo, DiceRoll } from "../types.js";
 import { debug } from "../debug.js";
 
-export function useClaudeSession(systemPrompt: string, cwd: string, debugMode: boolean) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+const THINKING_TAG_CLOSED_RE = /<thinking>[\s\S]*?<\/thinking>\s*/g;
+const THINKING_TAG_OPEN_RE = /<thinking>[\s\S]*$/;
+
+export function stripDmThinking(content: string): string {
+  // Strip fully closed <thinking>...</thinking> blocks
+  let result = content.replace(THINKING_TAG_CLOSED_RE, "");
+  // Strip unclosed <thinking>... at the end (still streaming)
+  result = result.replace(THINKING_TAG_OPEN_RE, "");
+  return result.trim();
+}
+
+interface ClaudeSessionOptions {
+  systemPrompt: string;
+  cwd: string;
+  debugMode: boolean;
+  initialSessionId: string | null;
+  initialMessages: ChatMessage[];
+  initialPrompt?: string;
+  onSessionInit: (sessionId: string) => void;
+}
+
+export function useClaudeSession({
+  systemPrompt,
+  cwd,
+  debugMode,
+  initialSessionId,
+  initialMessages,
+  initialPrompt,
+  onSessionInit,
+}: ClaudeSessionOptions) {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [currentToolCall, setCurrentToolCall] = useState<ToolCallInfo | null>(
     null
   );
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const sessionIdRef = useRef<string | null>(null);
+  const sessionIdRef = useRef<string | null>(initialSessionId);
+  const onSessionInitRef = useRef(onSessionInit);
+  onSessionInitRef.current = onSessionInit;
   const processingRef = useRef(false);
   const pendingDiceToolIds = useRef<Set<string>>(new Set());
 
@@ -50,8 +82,17 @@ export function useClaudeSession(systemPrompt: string, cwd: string, debugMode: b
                       content: output,
                       isStreaming: false,
                       diceRolls: rolls,
+                      animate: true,
                     },
                   ]);
+                  // Stop animation after it settles so scrolling doesn't replay it
+                  setTimeout(() => {
+                    setMessages((prev) =>
+                      prev.map((m) =>
+                        m.id === id ? { ...m, animate: false } : m
+                      )
+                    );
+                  }, 1400);
                 }
               }
             }
@@ -61,6 +102,7 @@ export function useClaudeSession(systemPrompt: string, cwd: string, debugMode: b
 
         if (msg.type === "system" && msg.subtype === "init") {
           sessionIdRef.current = msg.session_id;
+          onSessionInitRef.current(msg.session_id);
           debug("Session initialized:", msg.session_id);
           continue;
         }
@@ -233,7 +275,8 @@ export function useClaudeSession(systemPrompt: string, cwd: string, debugMode: b
           includePartialMessages: true,
           resume: sessionIdRef.current ?? undefined,
           settingSources: ["project"],
-          model: "opus",
+          model: "claude-opus-4-6",
+          maxThinkingTokens: 10000,
         },
       });
 
@@ -246,24 +289,15 @@ export function useClaudeSession(systemPrompt: string, cwd: string, debugMode: b
     [systemPrompt, cwd, processMessages]
   );
 
+  useEffect(() => {
+    if (initialPrompt) {
+      sendMessage(initialPrompt);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return { messages, currentToolCall, isProcessing, sendMessage };
 }
 
-// Parse roll_dice.py output: "2d10: [7, 3] = 10"
-function parseDiceOutput(output: string): DiceRoll[] {
-  const rolls: DiceRoll[] = [];
-  const linePattern = /(\d+d\d+):\s*\[([^\]]+)\]\s*=\s*(\d+)/g;
-  let match: RegExpExecArray | null;
-  while ((match = linePattern.exec(output)) !== null) {
-    const label = match[1];
-    const values = match[2].split(",").map((s) => parseInt(s.trim(), 10));
-    const total = parseInt(match[3], 10);
-    const sidesMatch = label.match(/d(\d+)/);
-    const sides = sidesMatch ? parseInt(sidesMatch[1], 10) : 6;
-    rolls.push({ sides, values, total, label });
-  }
-  return rolls;
-}
 
 function summarizeToolInput(
   toolName: string,

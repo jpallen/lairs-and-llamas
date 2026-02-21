@@ -1,9 +1,3 @@
-# Intro
-
-Your adventuring party was making its way along the well-traveled road to Cyndervale when a thin column of smoke caught your attention, rising from the forest a few hundred yards off the main trail.
-
-Who is in your party?
-
 # DM Guide
 
 A band of orcs have taken up temporary residence in an abandoned dwarf mine. They roam the nearby countryside looking for food and people to steal from. A halfling caravan with a family of grandparents, parents, and children camped for the night close to their lair. The orcs attacked the halflings and kidnapped the wife and grandparents, planning to eat them later as fresh meat.
@@ -34,10 +28,8 @@ Connected to:
 npcs:
   - id: ORC1
     type: Orc
-    status: Dead
   - id: ORC2
     type: Orc
-    status: Dead
   - id: MILO
     name: Milo Fairfoot
     type: Halfling
@@ -70,7 +62,7 @@ npcs:
 
 The trail from the clearing leads to a hillside with a large ornate stone entrance carved into it. It is covered in moss and ivy and looks disused. Two wolves, one gray [WOLF1] and one brown [WOLF2], are chained to posts outside.
 
-The party can befriend the wolves with an animal handling skill check (DC 15). If they try to pass without befriending them, the wolves will attack. If a fight breaks out, an orc will run out of the tunnel to investigate and attack the party.
+The party can befriend the wolves with an animal handling skill check (DC 15). If they try to pass without befriending them, the wolves will attack. If a fight breaks out, an orc [ORC3] will run out of the tunnel to investigate and attack the party.
 
 Connected to:
 
@@ -81,10 +73,8 @@ Connected to:
 npcs:
   - id: WOLF1
     type: Wolf
-    status: Befriended by Brynn, traveling with party (grey wolf)
   - id: WOLF2
     type: Wolf
-    status: Befriended by Brynn, traveling with party (brown wolf)
 ```
 
 ## A3. Entrance Tunnel
@@ -107,20 +97,16 @@ Connected to:
 npcs:
   - id: ORC3
     type: Orc
-    status: Dead (killed outside entrance)
 ```
 
 ## A3-1. Secret Passage
 
 A 10 ft by 10 ft tunnel, with a gelatinous cube [GC1] lurking at the far end. It starts oozing towards the players when they enter.
 
-The party discovered the secret door, spotted the cube, and sealed the door shut without engaging. The cube is still alive inside.
-
 ```yaml
 npcs:
   - id: GC1
     type: Gelatinous Cube
-    status: Alive (sealed behind secret door, encountered but not fought)
 ```
 
 Connected to:

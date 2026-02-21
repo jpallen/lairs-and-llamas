@@ -20,12 +20,17 @@ const ROLL_INTERVAL = 80;   // ms between random number changes
 
 interface Props {
   roll: DiceRoll;
+  animate?: boolean;
 }
 
-export function DiceRollLine({ roll }: Props) {
-  const [phase, setPhase] = useState<"rolling" | "settled">("rolling");
+export function DiceRollLine({ roll, animate }: Props) {
+  const [phase, setPhase] = useState<"rolling" | "settled">(
+    animate ? "rolling" : "settled"
+  );
   const [displayValues, setDisplayValues] = useState<number[]>(
-    roll.values.map(() => Math.floor(Math.random() * roll.sides) + 1)
+    animate
+      ? roll.values.map(() => Math.floor(Math.random() * roll.sides) + 1)
+      : roll.values
   );
   const mountTime = useRef(Date.now());
 

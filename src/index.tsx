@@ -1,29 +1,109 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { render } from "ink";
-import { readFileSync, writeFileSync } from "fs";
-import { resolve } from "path";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { App } from "./App.js";
+import { GameMenu } from "./components/GameMenu.js";
 import { DiceDemo } from "./components/Dice.js";
-import { debug } from "./debug.js";
+import {
+  listGames,
+  listCampaigns,
+  createGame,
+  loadGameMeta,
+  saveGameMeta,
+  getGameDir,
+  loadSessionHistory,
+  syncTemplateFiles,
+} from "./gameManager.js";
+import { debug, clearDebugLog } from "./debug.js";
+import { createFilteredStdin, cleanup } from "./mouseFilter.js";
+import type { ChatMessage, GameMeta } from "./types.js";
 
-// Clear log on startup
-writeFileSync(resolve(process.cwd(), "debug.log"), "");
+clearDebugLog();
 
-const cwd = process.cwd();
 const debugMode = process.argv.includes("--debug");
 const diceDemo = process.argv.includes("--dice");
+
+function Main() {
+  const [selectedGame, setSelectedGame] = useState<GameMeta | null>(null);
+  const [sessionHistory, setSessionHistory] = useState<ChatMessage[]>([]);
+  const [initialPrompt, setInitialPrompt] = useState<string | undefined>(undefined);
+  const [games, setGames] = useState(() => listGames());
+
+  const handleSelectGame = useCallback((id: string) => {
+    syncTemplateFiles(id);
+    const meta = loadGameMeta(id);
+    meta.lastPlayedAt = new Date().toISOString();
+    saveGameMeta(meta);
+    if (meta.sessionId) {
+      let history = loadSessionHistory(meta.id, meta.sessionId);
+      if (!debugMode) {
+        history = history.filter((m) => m.role !== "thinking");
+      }
+      setSessionHistory(history);
+    }
+    setSelectedGame(meta);
+  }, []);
+
+  const handleCreateGame = useCallback((campaign: string) => {
+    const meta = createGame(campaign);
+    setGames(listGames());
+    setInitialPrompt("Begin the adventure");
+    setSelectedGame(meta);
+  }, []);
+
+  const handleSessionInit = useCallback(
+    (sessionId: string) => {
+      if (!selectedGame) return;
+      const updated = { ...selectedGame, sessionId };
+      saveGameMeta(updated);
+      setSelectedGame(updated);
+    },
+    [selectedGame]
+  );
+
+  if (!selectedGame) {
+    return (
+      <GameMenu
+        games={games}
+        campaigns={listCampaigns()}
+        onSelectGame={handleSelectGame}
+        onCreateGame={handleCreateGame}
+      />
+    );
+  }
+
+  const gameDir = getGameDir(selectedGame.id);
+  const systemPrompt = readFileSync(join(gameDir, "SYSTEM.md"), "utf-8");
+
+  return (
+    <App
+      systemPrompt={systemPrompt}
+      cwd={gameDir}
+      debugMode={debugMode}
+      initialSessionId={selectedGame.sessionId}
+      initialMessages={sessionHistory}
+      initialPrompt={initialPrompt}
+      onSessionInit={handleSessionInit}
+    />
+  );
+}
 
 if (diceDemo) {
   render(<DiceDemo rolling />);
 } else {
-  const systemPromptPath = resolve(cwd, "SYSTEM.md");
+  debug("Starting app, debugMode:", debugMode);
+  const filteredStdin = createFilteredStdin(process.stdin);
+  const instance = render(<Main />, { stdin: filteredStdin } as any);
+  const originalUnmount = instance.unmount.bind(instance);
+  instance.unmount = () => {
+    cleanup();
+    originalUnmount();
+  };
 
-  debug("Starting app, cwd:", cwd, "debugMode:", debugMode);
-  debug("Reading SYSTEM.md from:", systemPromptPath);
-
-  const systemPrompt = readFileSync(systemPromptPath, "utf-8");
-  debug("SYSTEM.md loaded, length:", systemPrompt.length);
-
-  render(<App systemPrompt={systemPrompt} cwd={cwd} debugMode={debugMode} />);
-  debug("Ink render called");
+  process.on("SIGINT", () => { cleanup(); process.exit(); });
+  process.on("SIGTERM", () => { cleanup(); process.exit(); });
+  process.on("uncaughtException", () => { cleanup(); process.exit(1); });
+  process.on("unhandledRejection", () => { cleanup(); process.exit(1); });
+  process.on("exit", () => cleanup());
 }

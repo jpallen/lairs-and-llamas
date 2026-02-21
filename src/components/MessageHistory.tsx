@@ -1,14 +1,17 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Box, Text, useInput } from "ink";
 import type { ChatMessage, DiceRoll } from "../types.js";
+import { mouseEvents } from "../mouseFilter.js";
 import { MarkdownLine } from "./Markdown.js";
 import { DiceRollLine } from "./DiceRollLine.js";
+import { stripDmThinking } from "../hooks/useClaudeSession.js";
 
 interface Props {
   messages: ChatMessage[];
   height: number;
   contentWidth: number;
   isProcessing: boolean;
+  debugMode?: boolean;
 }
 
 interface Line {
@@ -16,13 +19,15 @@ interface Line {
   role: "user" | "assistant" | "thinking" | "dice" | "blank";
   inCodeBlock?: boolean;
   diceRoll?: DiceRoll;
+  animate?: boolean;
 }
 
 const USER_COLOR = "#CD853F";
 const ASSISTANT_COLOR = "#D2691E";
 const THINKING_COLOR = "#808080";
+const SCROLL_LINES = 3;
 
-export function MessageHistory({ messages, height, contentWidth, isProcessing }: Props) {
+export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode }: Props) {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [lastUserMessageCount, setLastUserMessageCount] = useState(0);
 
@@ -34,7 +39,7 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing }:
           lines.push({ text: "", role: "blank" });
         }
         for (const roll of msg.diceRolls ?? []) {
-          lines.push({ text: "", role: "dice", diceRoll: roll });
+          lines.push({ text: "", role: "dice", diceRoll: roll, animate: msg.animate });
         }
         continue;
       }
@@ -46,8 +51,9 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing }:
       }
 
       if (msg.role === "assistant") {
+        const displayContent = debugMode ? (msg.content || "") : stripDmThinking(msg.content || "");
         let inCodeBlock = false;
-        for (const rawLine of (msg.content || "").split("\n")) {
+        for (const rawLine of displayContent.split("\n")) {
           if (/^```/.test(rawLine)) {
             inCodeBlock = !inCodeBlock;
             lines.push({ text: rawLine, role: "assistant", inCodeBlock: true });
@@ -67,6 +73,17 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing }:
     }
     return lines;
   }, [messages, contentWidth]);
+
+  const maxOffset = Math.max(0, allLines.length - 1);
+
+  const scrollUp = useCallback(
+    (lines: number) => setScrollOffset((prev) => Math.max(0, prev - lines)),
+    []
+  );
+  const scrollDown = useCallback(
+    (lines: number) => setScrollOffset((prev) => Math.min(maxOffset, prev + lines)),
+    [maxOffset]
+  );
 
   const userMessageCount = messages.filter((m) => m.role === "user").length;
 
@@ -92,26 +109,36 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing }:
     }
   }, [userMessageCount, lastUserMessageCount, allLines]);
 
+  // Cmd+arrows and Shift+arrows always work (don't conflict with text input)
+  // Plain arrows only scroll when processing (input bar is disabled)
+  // PageUp/PageDown always work
   useInput((_input, key) => {
-    if (isProcessing) {
-      if (key.upArrow) {
-        setScrollOffset((prev) => Math.max(0, prev - 1));
-      }
-      if (key.downArrow) {
-        setScrollOffset((prev) =>
-          Math.min(Math.max(0, allLines.length - 1), prev + 1)
-        );
-      }
+    if ((key.meta || key.shift) && key.upArrow) {
+      scrollUp(SCROLL_LINES);
+    } else if ((key.meta || key.shift) && key.downArrow) {
+      scrollDown(SCROLL_LINES);
+    } else if (isProcessing && key.upArrow) {
+      scrollUp(1);
+    } else if (isProcessing && key.downArrow) {
+      scrollDown(1);
     }
     if (key.pageUp) {
-      setScrollOffset((prev) => Math.max(0, prev - height));
+      scrollUp(height);
     }
     if (key.pageDown) {
-      setScrollOffset((prev) =>
-        Math.min(Math.max(0, allLines.length - 1), prev + height)
-      );
+      scrollDown(height);
     }
   });
+
+  // Mouse scroll support (events emitted by mouseFilter before Ink sees them)
+  useEffect(() => {
+    const handleScroll = (direction: "up" | "down") => {
+      if (direction === "up") scrollUp(SCROLL_LINES);
+      else scrollDown(SCROLL_LINES);
+    };
+    mouseEvents.on("scroll", handleScroll);
+    return () => { mouseEvents.off("scroll", handleScroll); };
+  }, [scrollUp, scrollDown]);
 
   const visibleLines = allLines.slice(scrollOffset, scrollOffset + height);
 
@@ -125,7 +152,7 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing }:
       {paddedLines.map((line, i) => (
         <Box key={`${scrollOffset}-${i}`} width={contentWidth}>
           {line.role === "dice" && line.diceRoll ? (
-            <DiceRollLine roll={line.diceRoll} />
+            <DiceRollLine roll={line.diceRoll} animate={line.animate} />
           ) : line.role === "user" && line.text !== "" ? (
             <Box justifyContent="flex-end" width={contentWidth}>
               <Text color={USER_COLOR} bold>{line.text}</Text>

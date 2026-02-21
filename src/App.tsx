@@ -4,18 +4,23 @@ import { MessageHistory } from "./components/MessageHistory.js";
 import { ToolCallBar } from "./components/ToolCallBar.js";
 import { InputBar } from "./components/InputBar.js";
 import { useClaudeSession } from "./hooks/useClaudeSession.js";
+import type { ChatMessage } from "./types.js";
 
 interface AppProps {
   systemPrompt: string;
   cwd: string;
   debugMode: boolean;
+  initialSessionId: string | null;
+  initialMessages: ChatMessage[];
+  initialPrompt?: string;
+  onSessionInit: (sessionId: string) => void;
 }
 
 const BORDER = "#8B4513";
 
-export function App({ systemPrompt, cwd, debugMode }: AppProps) {
+export function App({ systemPrompt, cwd, debugMode, initialSessionId, initialMessages, initialPrompt, onSessionInit }: AppProps) {
   const { messages, currentToolCall, isProcessing, sendMessage } =
-    useClaudeSession(systemPrompt, cwd, debugMode);
+    useClaudeSession({ systemPrompt, cwd, debugMode, initialSessionId, initialMessages, initialPrompt, onSessionInit });
 
   const { stdout } = useStdout();
   const terminalHeight = stdout?.rows ?? 24;
@@ -51,6 +56,7 @@ export function App({ systemPrompt, cwd, debugMode }: AppProps) {
           height={historyHeight}
           contentWidth={contentWidth}
           isProcessing={isProcessing}
+          debugMode={debugMode}
         />
         {currentToolCall && (
           <ToolCallBar toolCall={currentToolCall} width={contentWidth} />
