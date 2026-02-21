@@ -12,7 +12,30 @@ import {
 import { parseDiceOutput } from "./types.js";
 import type { GameMeta, ChatMessage } from "./types.js";
 
-const GAMES_BASE = join(homedir(), ".lairs-and-llamas", "games");
+const APP_BASE = join(homedir(), ".lairs-and-llamas");
+const GAMES_BASE = join(APP_BASE, "games");
+const SETTINGS_PATH = join(APP_BASE, "settings.json");
+
+export interface AppSettings {
+  showHelp: boolean;
+  [key: string]: unknown;
+}
+
+const DEFAULT_SETTINGS: AppSettings = { showHelp: true };
+
+export function loadSettings(): AppSettings {
+  if (!existsSync(SETTINGS_PATH)) return { ...DEFAULT_SETTINGS };
+  try {
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(readFileSync(SETTINGS_PATH, "utf-8")) };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+export function saveSettings(settings: AppSettings): void {
+  mkdirSync(APP_BASE, { recursive: true });
+  writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
+}
 
 function getProjectRoot(): string {
   return join(dirname(fileURLToPath(import.meta.url)), "..");

@@ -18,7 +18,6 @@ export function stripDmThinking(content: string): string {
 interface ClaudeSessionOptions {
   systemPrompt: string;
   cwd: string;
-  debugMode: boolean;
   initialSessionId: string | null;
   initialMessages: ChatMessage[];
   initialPrompt?: string;
@@ -28,7 +27,6 @@ interface ClaudeSessionOptions {
 export function useClaudeSession({
   systemPrompt,
   cwd,
-  debugMode,
   initialSessionId,
   initialMessages,
   initialPrompt,
@@ -140,7 +138,6 @@ export function useClaudeSession({
               );
             }
           } else if (
-            debugMode &&
             event.type === "content_block_start" &&
             event.content_block.type === "thinking"
           ) {
@@ -155,7 +152,6 @@ export function useClaudeSession({
               },
             ]);
           } else if (
-            debugMode &&
             event.type === "content_block_delta" &&
             event.delta.type === "thinking_delta" &&
             currentThinkingId

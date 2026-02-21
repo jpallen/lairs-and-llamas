@@ -14,6 +14,8 @@ import {
   getGameDir,
   loadSessionHistory,
   syncTemplateFiles,
+  loadSettings,
+  saveSettings,
 } from "./gameManager.js";
 import { debug, clearDebugLog } from "./debug.js";
 import { createFilteredStdin, cleanup } from "./mouseFilter.js";
@@ -30,6 +32,7 @@ function Main() {
   const [initialPrompt, setInitialPrompt] = useState<string | undefined>(undefined);
   const [games, setGames] = useState(() => listGames());
   const [debugMode, setDebugMode] = useState(initialDebugMode);
+  const [showHelp, setShowHelp] = useState(() => loadSettings().showHelp);
 
   const handleSelectGame = useCallback((id: string) => {
     syncTemplateFiles(id);
@@ -88,6 +91,13 @@ function Main() {
       initialMessages={sessionHistory}
       initialPrompt={initialPrompt}
       onSessionInit={handleSessionInit}
+      showHelp={showHelp}
+      onToggleHelp={() => setShowHelp((h) => {
+        const next = !h;
+        const settings = loadSettings();
+        saveSettings({ ...settings, showHelp: next });
+        return next;
+      })}
       onToggleDebug={() => setDebugMode((d) => !d)}
       onBack={() => { setSelectedGame(null); setSessionHistory([]); setInitialPrompt(undefined); }}
       onQuit={() => { cleanup(); process.exit(0); }}

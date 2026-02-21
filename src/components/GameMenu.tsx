@@ -34,8 +34,8 @@ export function GameMenu({ games, campaigns, onSelectGame, onCreateGame, onQuit 
         setShowQuitMenu(true);
         return;
       }
-      if (key.upArrow) setCursor((c) => Math.max(0, c - 1));
-      if (key.downArrow) setCursor((c) => Math.min(gameItems.length - 1, c + 1));
+      if (key.upArrow) setCursor((c) => (c <= 0 ? gameItems.length - 1 : c - 1));
+      if (key.downArrow) setCursor((c) => (c >= gameItems.length - 1 ? 0 : c + 1));
       if (key.return) {
         if (cursor === gameItems.length - 1) {
           setCursor(0);
@@ -45,8 +45,8 @@ export function GameMenu({ games, campaigns, onSelectGame, onCreateGame, onQuit 
         }
       }
     } else if (menuState === "campaign-picker") {
-      if (key.upArrow) setCursor((c) => Math.max(0, c - 1));
-      if (key.downArrow) setCursor((c) => Math.min(campaigns.length - 1, c + 1));
+      if (key.upArrow) setCursor((c) => (c <= 0 ? campaigns.length - 1 : c - 1));
+      if (key.downArrow) setCursor((c) => (c >= campaigns.length - 1 ? 0 : c + 1));
       if (key.escape) {
         setCursor(gameItems.length - 1);
         setMenuState("game-list");

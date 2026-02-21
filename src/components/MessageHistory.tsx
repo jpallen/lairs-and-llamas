@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Box, Text, useInput } from "ink";
-import type { ChatMessage, DiceRoll } from "../types.js";
+import type { ChatMessage, DiceRoll, ToolCallInfo } from "../types.js";
 import { mouseEvents } from "../mouseFilter.js";
 import { MarkdownLine } from "./Markdown.js";
 import { DiceRollLine } from "./DiceRollLine.js";
@@ -17,12 +17,13 @@ interface Props {
   contentWidth: number;
   isProcessing: boolean;
   debugMode?: boolean;
+  currentToolCall: ToolCallInfo | null;
   isActive?: boolean;
 }
 
 interface Line {
   text: string;
-  role: "user" | "assistant" | "thinking" | "dice" | "blank" | "table-border" | "table-row";
+  role: "user" | "assistant" | "thinking" | "dice" | "blank" | "table-border" | "table-row" | "status";
   diceRoll?: DiceRoll;
   animate?: boolean;
   colWidths?: number[];
@@ -36,13 +37,53 @@ const ASSISTANT_COLOR = "#D2691E";
 const THINKING_COLOR = "#808080";
 const SCROLL_LINES = 3;
 
-export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode, isActive = true }: Props) {
+function getStatusLabel(toolCall: ToolCallInfo | null, isThinking: boolean): string | null {
+  if (isThinking) return "Thinking...";
+  if (!toolCall) return null;
+  const { toolName, input } = toolCall;
+  const path = input ?? "";
+  if (toolName === "Read" || toolName === "Glob" || toolName === "Grep") {
+    if (/rules/i.test(path)) return "Reading rules...";
+    if (/charactersheet/i.test(path)) return "Reading character sheets...";
+    if (/journal/i.test(path)) return "Reading journal...";
+    if (/campaign/i.test(path)) return "Reading campaign notes...";
+    if (/system/i.test(path)) return "Reading system prompt...";
+    return "Reading files...";
+  }
+  if (toolName === "Write" || toolName === "Edit") {
+    if (/journal/i.test(path)) return "Updating journal...";
+    if (/charactersheet/i.test(path)) return "Updating character sheets...";
+    if (/campaign/i.test(path)) return "Updating campaign notes...";
+    return "Writing files...";
+  }
+  if (toolName === "Bash") {
+    if (/roll_dice/i.test(path)) return "Rolling dice...";
+    return "Running command...";
+  }
+  if (toolName === "Task") return "Working on task...";
+  return `${toolName}...`;
+}
+
+export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode, currentToolCall, isActive = true }: Props) {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [lastUserMessageCount, setLastUserMessageCount] = useState(0);
 
   const allLines = useMemo(() => {
     const lines: Line[] = [];
     for (const msg of messages) {
+      if (msg.role === "thinking") {
+        if (!debugMode) continue;
+        if (!msg.content && !msg.isStreaming) continue;
+        if (lines.length > 0) {
+          lines.push({ text: "", role: "blank" });
+        }
+        const wrapped = wordWrap(msg.content || "", contentWidth);
+        for (const line of wrapped) {
+          lines.push({ text: line, role: "thinking" });
+        }
+        continue;
+      }
+
       if (msg.role === "dice") {
         if (lines.length > 0) {
           lines.push({ text: "", role: "blank" });
@@ -78,8 +119,26 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
         }
       }
     }
+
+    if (isProcessing) {
+      const lastAssistant = [...messages].reverse().find(m => m.role === "assistant");
+      const lastThinking = [...messages].reverse().find(m => m.role === "thinking");
+      const isCurrentlyThinking = !!lastThinking?.isStreaming &&
+        (!lastAssistant || !stripDmThinking(lastAssistant.content || ""));
+
+      const statusLabel = getStatusLabel(currentToolCall, isCurrentlyThinking);
+      if (statusLabel) {
+        const hasVisibleContent = !!lastAssistant?.isStreaming &&
+          stripDmThinking(lastAssistant.content || "").length > 0;
+        if (!hasVisibleContent) {
+          lines.push({ text: "", role: "blank" });
+          lines.push({ text: statusLabel, role: "status" });
+        }
+      }
+    }
+
     return lines;
-  }, [messages, contentWidth]);
+  }, [messages, contentWidth, debugMode, isProcessing, currentToolCall]);
 
   const maxOffset = Math.max(0, allLines.length - 1);
 
@@ -172,6 +231,8 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
             <MarkdownLine baseColor={ASSISTANT_COLOR}>{line.text}</MarkdownLine>
           ) : line.role === "thinking" && line.text !== "" ? (
             <Text color={THINKING_COLOR} dimColor>{line.text}</Text>
+          ) : line.role === "status" ? (
+            <Text color="#8B4513" dimColor>  ~ {line.text}</Text>
           ) : (
             <Text> </Text>
           )}

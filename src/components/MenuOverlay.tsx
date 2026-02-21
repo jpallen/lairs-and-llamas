@@ -24,10 +24,10 @@ export function MenuOverlay({ title, items, onSelect, onClose, height, width }: 
       return;
     }
     if (key.upArrow) {
-      setCursor((c) => Math.max(0, c - 1));
+      setCursor((c) => (c <= 0 ? items.length - 1 : c - 1));
     }
     if (key.downArrow) {
-      setCursor((c) => Math.min(items.length - 1, c + 1));
+      setCursor((c) => (c >= items.length - 1 ? 0 : c + 1));
     }
     if (key.return) {
       onSelect(items[cursor].action);
