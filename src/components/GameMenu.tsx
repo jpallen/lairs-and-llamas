@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Box, Text, useInput, useStdout } from "ink";
 import type { GameMeta } from "../types.js";
+import { MenuOverlay } from "./MenuOverlay.js";
 
 const BORDER = "#8B4513";
 
@@ -9,13 +10,15 @@ interface GameMenuProps {
   campaigns: string[];
   onSelectGame: (id: string) => void;
   onCreateGame: (campaign: string) => void;
+  onQuit: () => void;
 }
 
 type MenuState = "game-list" | "campaign-picker";
 
-export function GameMenu({ games, campaigns, onSelectGame, onCreateGame }: GameMenuProps) {
+export function GameMenu({ games, campaigns, onSelectGame, onCreateGame, onQuit }: GameMenuProps) {
   const [cursor, setCursor] = useState(0);
   const [menuState, setMenuState] = useState<MenuState>("game-list");
+  const [showQuitMenu, setShowQuitMenu] = useState(false);
 
   const { stdout } = useStdout();
   const terminalHeight = stdout?.rows ?? 24;
@@ -25,7 +28,12 @@ export function GameMenu({ games, campaigns, onSelectGame, onCreateGame }: GameM
   const gameItems = [...games.map((g) => g.id), "+ New Game"];
 
   useInput((_input, key) => {
+    if (showQuitMenu) return;
     if (menuState === "game-list") {
+      if (key.escape) {
+        setShowQuitMenu(true);
+        return;
+      }
       if (key.upArrow) setCursor((c) => Math.max(0, c - 1));
       if (key.downArrow) setCursor((c) => Math.min(gameItems.length - 1, c + 1));
       if (key.return) {
@@ -66,6 +74,22 @@ export function GameMenu({ games, campaigns, onSelectGame, onCreateGame }: GameM
         justifyContent="center"
         alignItems="center"
       >
+        {showQuitMenu ? (
+          <MenuOverlay
+            title="=== Lairs & LLamas ==="
+            items={[
+              { label: "Resume", action: "resume" },
+              { label: "Quit", action: "quit" },
+            ]}
+            onSelect={(action) => {
+              if (action === "resume") setShowQuitMenu(false);
+              else if (action === "quit") onQuit();
+            }}
+            onClose={() => setShowQuitMenu(false)}
+            height={terminalHeight - 4}
+            width={frameWidth - 4}
+          />
+        ) : (<>
         <Text color="#B8860B" bold>
           {"=== Lairs & LLamas ==="}
         </Text>
@@ -97,6 +121,7 @@ export function GameMenu({ games, campaigns, onSelectGame, onCreateGame }: GameM
             <Text color="#8B4513" dimColor>{"(Esc to go back)"}</Text>
           </>
         )}
+        </>)}
       </Box>
     </Box>
   );

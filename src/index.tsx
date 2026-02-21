@@ -21,7 +21,7 @@ import type { ChatMessage, GameMeta } from "./types.js";
 
 clearDebugLog();
 
-const debugMode = process.argv.includes("--debug");
+const initialDebugMode = process.argv.includes("--debug");
 const diceDemo = process.argv.includes("--dice");
 
 function Main() {
@@ -29,6 +29,7 @@ function Main() {
   const [sessionHistory, setSessionHistory] = useState<ChatMessage[]>([]);
   const [initialPrompt, setInitialPrompt] = useState<string | undefined>(undefined);
   const [games, setGames] = useState(() => listGames());
+  const [debugMode, setDebugMode] = useState(initialDebugMode);
 
   const handleSelectGame = useCallback((id: string) => {
     syncTemplateFiles(id);
@@ -43,7 +44,7 @@ function Main() {
       setSessionHistory(history);
     }
     setSelectedGame(meta);
-  }, []);
+  }, [debugMode]);
 
   const handleCreateGame = useCallback((campaign: string) => {
     const meta = createGame(campaign);
@@ -69,6 +70,7 @@ function Main() {
         campaigns={listCampaigns()}
         onSelectGame={handleSelectGame}
         onCreateGame={handleCreateGame}
+        onQuit={() => { cleanup(); process.exit(0); }}
       />
     );
   }
@@ -80,11 +82,15 @@ function Main() {
     <App
       systemPrompt={systemPrompt}
       cwd={gameDir}
+      gameDir={gameDir}
       debugMode={debugMode}
       initialSessionId={selectedGame.sessionId}
       initialMessages={sessionHistory}
       initialPrompt={initialPrompt}
       onSessionInit={handleSessionInit}
+      onToggleDebug={() => setDebugMode((d) => !d)}
+      onBack={() => { setSelectedGame(null); setSessionHistory([]); setInitialPrompt(undefined); }}
+      onQuit={() => { cleanup(); process.exit(0); }}
     />
   );
 }
@@ -92,7 +98,7 @@ function Main() {
 if (diceDemo) {
   render(<DiceDemo rolling />);
 } else {
-  debug("Starting app, debugMode:", debugMode);
+  debug("Starting app, debugMode:", initialDebugMode);
   const filteredStdin = createFilteredStdin(process.stdin);
   const instance = render(<Main />, { stdin: filteredStdin } as any);
   const originalUnmount = instance.unmount.bind(instance);

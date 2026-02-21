@@ -5,6 +5,11 @@ import { mouseEvents } from "../mouseFilter.js";
 import { MarkdownLine } from "./Markdown.js";
 import { DiceRollLine } from "./DiceRollLine.js";
 import { stripDmThinking } from "../hooks/useClaudeSession.js";
+import {
+  formatMarkdown,
+  MarkdownTableRow,
+  MarkdownTableBorder,
+} from "./MarkdownTable.js";
 
 interface Props {
   messages: ChatMessage[];
@@ -12,14 +17,18 @@ interface Props {
   contentWidth: number;
   isProcessing: boolean;
   debugMode?: boolean;
+  isActive?: boolean;
 }
 
 interface Line {
   text: string;
-  role: "user" | "assistant" | "thinking" | "dice" | "blank";
-  inCodeBlock?: boolean;
+  role: "user" | "assistant" | "thinking" | "dice" | "blank" | "table-border" | "table-row";
   diceRoll?: DiceRoll;
   animate?: boolean;
+  colWidths?: number[];
+  borderPosition?: "top" | "middle" | "bottom";
+  cells?: string[];
+  isHeader?: boolean;
 }
 
 const USER_COLOR = "#CD853F";
@@ -27,7 +36,7 @@ const ASSISTANT_COLOR = "#D2691E";
 const THINKING_COLOR = "#808080";
 const SCROLL_LINES = 3;
 
-export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode }: Props) {
+export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode, isActive = true }: Props) {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [lastUserMessageCount, setLastUserMessageCount] = useState(0);
 
@@ -52,16 +61,14 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
 
       if (msg.role === "assistant") {
         const displayContent = debugMode ? (msg.content || "") : stripDmThinking(msg.content || "");
-        let inCodeBlock = false;
-        for (const rawLine of displayContent.split("\n")) {
-          if (/^```/.test(rawLine)) {
-            inCodeBlock = !inCodeBlock;
-            lines.push({ text: rawLine, role: "assistant", inCodeBlock: true });
-            continue;
-          }
-          const wrapped = wordWrap(rawLine, contentWidth);
-          for (const w of wrapped) {
-            lines.push({ text: w, role: "assistant", inCodeBlock });
+        const formatted = formatMarkdown(displayContent, contentWidth);
+        for (const fl of formatted) {
+          if (fl.type === "table-border") {
+            lines.push({ text: "", role: "table-border", colWidths: fl.colWidths, borderPosition: fl.position });
+          } else if (fl.type === "table-row") {
+            lines.push({ text: "", role: "table-row", cells: fl.cells, colWidths: fl.colWidths, isHeader: fl.isHeader });
+          } else {
+            lines.push({ text: fl.text, role: "assistant" });
           }
         }
       } else {
@@ -128,7 +135,7 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
     if (key.pageDown) {
       scrollDown(height);
     }
-  });
+  }, { isActive });
 
   // Mouse scroll support (events emitted by mouseFilter before Ink sees them)
   useEffect(() => {
@@ -153,16 +160,16 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
         <Box key={`${scrollOffset}-${i}`} width={contentWidth}>
           {line.role === "dice" && line.diceRoll ? (
             <DiceRollLine roll={line.diceRoll} animate={line.animate} />
+          ) : line.role === "table-border" && line.colWidths ? (
+            <MarkdownTableBorder colWidths={line.colWidths} position={line.borderPosition!} />
+          ) : line.role === "table-row" && line.cells && line.colWidths ? (
+            <MarkdownTableRow cells={line.cells} colWidths={line.colWidths} isHeader={line.isHeader ?? false} baseColor={ASSISTANT_COLOR} />
           ) : line.role === "user" && line.text !== "" ? (
             <Box justifyContent="flex-end" width={contentWidth}>
               <Text color={USER_COLOR} bold>{line.text}</Text>
             </Box>
           ) : line.role === "assistant" && line.text !== "" ? (
-            line.inCodeBlock ? (
-              <Text color="#B8860B">{line.text}</Text>
-            ) : (
-              <MarkdownLine baseColor={ASSISTANT_COLOR}>{line.text}</MarkdownLine>
-            )
+            <MarkdownLine baseColor={ASSISTANT_COLOR}>{line.text}</MarkdownLine>
           ) : line.role === "thinking" && line.text !== "" ? (
             <Text color={THINKING_COLOR} dimColor>{line.text}</Text>
           ) : (
@@ -174,7 +181,7 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
   );
 }
 
-function wordWrap(text: string, maxWidth: number): string[] {
+export function wordWrap(text: string, maxWidth: number): string[] {
   if (!text) return [""];
   const result: string[] = [];
   for (const paragraph of text.split("\n")) {
