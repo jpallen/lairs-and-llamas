@@ -15,20 +15,16 @@ import type { ChatMessage } from "./types.js";
 import type { EffortLevel } from "./gameManager.js";
 
 interface AppProps {
-  systemPrompt: string;
-  cwd: string;
+  port: number;
   gameDir: string;
   model: string;
   effort: EffortLevel;
   debugMode: boolean;
   showHelp: boolean;
-  initialSessionId: string | null;
-  initialMessages: ChatMessage[];
-  initialPrompt?: string;
   onSessionInit: (sessionId: string) => void;
   onClearSession: () => void;
-  onSwitchModel: () => void;
-  onSwitchEffort: () => void;
+  onModelChanged: (model: string) => void;
+  onEffortChanged: (effort: EffortLevel) => void;
   onToggleHelp: () => void;
   onToggleDebug: () => void;
   onBack: () => void;
@@ -39,9 +35,9 @@ type OverlayMode = "none" | "menu" | "settings" | "character-sheet" | "journal";
 
 const BORDER = "#8B4513";
 
-export function App({ systemPrompt, cwd, gameDir, model, effort, debugMode, showHelp, initialSessionId, initialMessages, initialPrompt, onSessionInit, onClearSession, onSwitchModel, onSwitchEffort, onToggleHelp, onToggleDebug, onBack, onQuit }: AppProps) {
-  const { messages, currentToolCall, isProcessing, statusMessage, pendingQuestion, sendMessage, answerQuestion, interrupt, clearSession } =
-    useClaudeSession({ systemPrompt, cwd, model, effort, initialSessionId, initialMessages, initialPrompt, onSessionInit });
+export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessionInit, onClearSession, onModelChanged, onEffortChanged, onToggleHelp, onToggleDebug, onBack, onQuit }: AppProps) {
+  const { messages, currentToolCall, isProcessing, statusMessage, pendingQuestion, sendMessage, answerQuestion, interrupt, clearSession, switchModel, switchEffort } =
+    useClaudeSession({ port, onSessionInit, onClearSession, onModelChanged: onModelChanged, onEffortChanged: onEffortChanged });
 
   const [overlayMode, setOverlayMode] = useState<OverlayMode>("none");
   const [scrollRevision, setScrollRevision] = useState(0);
@@ -74,6 +70,9 @@ export function App({ systemPrompt, cwd, gameDir, model, effort, debugMode, show
   // Full inner height (border top/bottom = 2)
   const innerHeight = terminalHeight - 2;
 
+  const modelLabel = model === "claude-opus-4-6" ? "Opus" : "Sonnet";
+  const effortLabel = effort[0].toUpperCase() + effort.slice(1);
+
   useInput((input, key) => {
     if (key.escape && overlayMode === "none") {
       setOverlayMode("menu");
@@ -102,10 +101,6 @@ export function App({ systemPrompt, cwd, gameDir, model, effort, debugMode, show
     }
   }, { isActive: overlayMode === "none" && !pendingQuestion });
 
-  const modelLabel = model === "claude-opus-4-6" ? "Opus" : "Sonnet";
-
-  const effortLabel = effort[0].toUpperCase() + effort.slice(1);
-
   const handleMenuSelect = (action: string) => {
     switch (action) {
       case "resume":
@@ -117,7 +112,6 @@ export function App({ systemPrompt, cwd, gameDir, model, effort, debugMode, show
         break;
       case "clear-session":
         clearSession();
-        onClearSession();
         setOverlayMode("none");
         break;
       case "settings":
@@ -149,12 +143,16 @@ export function App({ systemPrompt, cwd, gameDir, model, effort, debugMode, show
 
   const handleSettingsSelect = (action: string) => {
     switch (action) {
-      case "switch-model":
-        onSwitchModel();
+      case "switch-model": {
+        const next = model === "claude-opus-4-6" ? "claude-sonnet-4-6" : "claude-opus-4-6";
+        switchModel(next);
         break;
-      case "switch-effort":
-        onSwitchEffort();
+      }
+      case "switch-effort": {
+        const cycle: Record<string, EffortLevel> = { low: "medium", medium: "high", high: "low" };
+        switchEffort(cycle[effort]);
         break;
+      }
     }
   };
 
