@@ -1,17 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { query } from "@anthropic-ai/claude-agent-sdk";
+import { query, type Query } from "@anthropic-ai/claude-agent-sdk";
 import { parseDiceOutput } from "../types.js";
 import type { ChatMessage, ToolCallInfo, DiceRoll } from "../types.js";
+import type { EffortLevel } from "../gameManager.js";
 import { debug } from "../debug.js";
 
-const THINKING_TAG_CLOSED_RE = /<thinking>[\s\S]*?<\/thinking>\s*/g;
-const THINKING_TAG_OPEN_RE = /<thinking>[\s\S]*$/;
+export interface QuestionOption {
+  label: string;
+  description: string;
+}
+
+export interface PendingQuestion {
+  questions: Array<{
+    question: string;
+    header: string;
+    options: QuestionOption[];
+    multiSelect: boolean;
+  }>;
+}
+
+const HIDDEN_TAG_CLOSED_RE = /<(?:thinking|hide)>[\s\S]*?<\/(?:thinking|hide)>\s*/g;
+const HIDDEN_TAG_OPEN_RE = /<(?:thinking|hide)>[\s\S]*$/;
 
 export function stripDmThinking(content: string): string {
-  // Strip fully closed <thinking>...</thinking> blocks
-  let result = content.replace(THINKING_TAG_CLOSED_RE, "");
-  // Strip unclosed <thinking>... at the end (still streaming)
-  result = result.replace(THINKING_TAG_OPEN_RE, "");
+  // Strip fully closed <thinking>...</thinking> and <hide>...</hide> blocks
+  let result = content.replace(HIDDEN_TAG_CLOSED_RE, "");
+  // Strip unclosed tags at the end (still streaming)
+  result = result.replace(HIDDEN_TAG_OPEN_RE, "");
   // Collapse runs of 3+ newlines down to 2 (one blank line)
   result = result.replace(/\n{3,}/g, "\n\n");
   return result.trim();
@@ -20,6 +35,8 @@ export function stripDmThinking(content: string): string {
 interface ClaudeSessionOptions {
   systemPrompt: string;
   cwd: string;
+  model: string;
+  effort: EffortLevel;
   initialSessionId: string | null;
   initialMessages: ChatMessage[];
   initialPrompt?: string;
@@ -29,6 +46,8 @@ interface ClaudeSessionOptions {
 export function useClaudeSession({
   systemPrompt,
   cwd,
+  model,
+  effort,
   initialSessionId,
   initialMessages,
   initialPrompt,
@@ -40,12 +59,89 @@ export function useClaudeSession({
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [pendingQuestion, setPendingQuestion] = useState<PendingQuestion | null>(null);
 
   const sessionIdRef = useRef<string | null>(initialSessionId);
   const onSessionInitRef = useRef(onSessionInit);
   onSessionInitRef.current = onSessionInit;
   const processingRef = useRef(false);
   const pendingDiceToolIds = useRef<Set<string>>(new Set());
+  const queryRef = useRef<Query | null>(null);
+  const pendingQuestionResolveRef = useRef<((result: any) => void) | null>(null);
+
+  const awaitUserAnswer = useCallback(
+    (input: Record<string, unknown>): Promise<any> => {
+      return new Promise((resolve) => {
+        pendingQuestionResolveRef.current = resolve;
+        debug("AskUserQuestion input:", JSON.stringify(input).slice(0, 500));
+        setPendingQuestion({
+          questions: input.questions as PendingQuestion["questions"],
+        });
+      });
+    },
+    []
+  );
+
+  const answerQuestion = useCallback(
+    (answers: Record<string, string>) => {
+      if (pendingQuestionResolveRef.current) {
+        const currentQuestion = pendingQuestion;
+        pendingQuestionResolveRef.current({
+          behavior: "allow",
+          updatedInput: {
+            ...(currentQuestion ? { questions: currentQuestion.questions } : {}),
+            answers,
+          },
+        });
+        pendingQuestionResolveRef.current = null;
+        setPendingQuestion(null);
+      }
+    },
+    [pendingQuestion]
+  );
+
+  const canUseTool = useCallback(
+    async (
+      toolName: string,
+      input: Record<string, unknown>,
+    ): Promise<any> => {
+      // Always allow read-only tools
+      if (["Read", "Glob", "Grep", "Task"].includes(toolName)) {
+        return { behavior: "allow", updatedInput: input };
+      }
+
+      // Allow Bash only for roll_dice.py
+      if (toolName === "Bash") {
+        const cmd = String(input.command ?? "");
+        if (cmd.includes("roll_dice")) {
+          return { behavior: "allow", updatedInput: input };
+        }
+        return { behavior: "deny", message: "Only roll_dice.py is allowed via Bash." };
+      }
+
+      // Allow Write/Edit only to CharacterSheets/, JOURNAL.md, Campaign/
+      if (toolName === "Write" || toolName === "Edit") {
+        const filePath = String(input.file_path ?? "");
+        if (
+          filePath.includes("/CharacterSheets/") ||
+          filePath.endsWith("/JOURNAL.md") ||
+          filePath.includes("/Campaign/")
+        ) {
+          return { behavior: "allow", updatedInput: input };
+        }
+        return { behavior: "deny", message: "Can only write to CharacterSheets/, JOURNAL.md, or Campaign/." };
+      }
+
+      // AskUserQuestion — route to TUI overlay
+      if (toolName === "AskUserQuestion") {
+        return awaitUserAnswer(input);
+      }
+
+      // Deny everything else
+      return { behavior: "deny", message: `Tool ${toolName} is not allowed.` };
+    },
+    [awaitUserAnswer]
+  );
 
   const processMessages = useCallback(
     async (gen: ReturnType<typeof query>) => {
@@ -217,10 +313,22 @@ export function useClaudeSession({
           for (const block of msg.message.content) {
             if (block.type === "tool_use") {
               const input = block.input as Record<string, unknown>;
+              const summary = summarizeToolInput(block.name, input);
               setCurrentToolCall({
                 toolName: block.name,
-                input: summarizeToolInput(block.name, input),
+                input: summary,
               });
+              // Add persistent tool call message for verbose mode
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: crypto.randomUUID(),
+                  role: "tool",
+                  content: summary,
+                  toolName: block.name,
+                  isStreaming: false,
+                },
+              ]);
               // Track roll_dice.py bash calls
               if (
                 block.name === "Bash" &&
@@ -281,15 +389,16 @@ export function useClaudeSession({
           systemPrompt,
           cwd,
           tools: { type: "preset", preset: "claude_code" },
-          permissionMode: "bypassPermissions",
-          allowDangerouslySkipPermissions: true,
+          canUseTool,
           includePartialMessages: true,
           resume: sessionIdRef.current ?? undefined,
           settingSources: ["project"],
-          model: "claude-opus-4-6",
-          maxThinkingTokens: 1000,
+          model,
+          effort,
+          maxThinkingTokens: 1024,
         },
       });
+      queryRef.current = gen;
 
       processMessages(gen).catch((err) => {
         debug("Claude session error:", err?.message ?? err, err?.stack);
@@ -297,8 +406,40 @@ export function useClaudeSession({
         processingRef.current = false;
       });
     },
-    [systemPrompt, cwd, processMessages]
+    [systemPrompt, cwd, model, effort, canUseTool, processMessages]
   );
+
+  const interrupt = useCallback(async () => {
+    if (queryRef.current && processingRef.current) {
+      debug("Interrupting current query");
+      try {
+        await queryRef.current.interrupt();
+      } catch (err: any) {
+        debug("Interrupt error:", err?.message);
+      }
+      queryRef.current = null;
+      setIsProcessing(false);
+      processingRef.current = false;
+      setCurrentToolCall(null);
+      setStatusMessage(null);
+      // Mark any streaming messages as complete
+      setMessages((prev) =>
+        prev.map((m) => (m.isStreaming ? { ...m, isStreaming: false } : m))
+      );
+    }
+  }, []);
+
+  const clearSession = useCallback(() => {
+    debug("Clearing session");
+    sessionIdRef.current = null;
+    queryRef.current = null;
+    setMessages([]);
+    setIsProcessing(false);
+    processingRef.current = false;
+    setCurrentToolCall(null);
+    setStatusMessage(null);
+    pendingDiceToolIds.current.clear();
+  }, []);
 
   useEffect(() => {
     if (initialPrompt) {
@@ -306,7 +447,7 @@ export function useClaudeSession({
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { messages, currentToolCall, isProcessing, statusMessage, sendMessage };
+  return { messages, currentToolCall, isProcessing, statusMessage, pendingQuestion, sendMessage, answerQuestion, interrupt, clearSession };
 }
 
 

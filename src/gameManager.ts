@@ -16,8 +16,12 @@ const APP_BASE = join(homedir(), ".lairs-and-llamas");
 const GAMES_BASE = join(APP_BASE, "games");
 const SETTINGS_PATH = join(APP_BASE, "settings.json");
 
+export type EffortLevel = "low" | "medium" | "high";
+
 export interface AppSettings {
   showHelp: boolean;
+  model?: string;
+  effort?: EffortLevel;
   [key: string]: unknown;
 }
 
@@ -47,6 +51,10 @@ function getTemplatesDir(): string {
 
 export function getGameDir(id: string): string {
   return join(GAMES_BASE, id);
+}
+
+export function getSystemPromptPath(): string {
+  return join(getTemplatesDir(), "SYSTEM.md");
 }
 
 export function listGames(): GameMeta[] {
@@ -79,7 +87,7 @@ export function createGame(campaign: string): GameMeta {
   mkdirSync(gameDir, { recursive: true });
 
   // Copy shared files
-  for (const file of ["SYSTEM.md", "roll_dice.py", "JOURNAL.md"]) {
+  for (const file of ["roll_dice.py", "JOURNAL.md"]) {
     cpSync(join(templatesDir, file), join(gameDir, file));
   }
 
@@ -92,9 +100,6 @@ export function createGame(campaign: string): GameMeta {
   const campaignDir = join(templatesDir, "campaigns", campaign);
   if (existsSync(join(campaignDir, "Campaign"))) {
     cpSync(join(campaignDir, "Campaign"), join(gameDir, "Campaign"), { recursive: true });
-  }
-  if (existsSync(join(campaignDir, "CharacterSheets"))) {
-    cpSync(join(campaignDir, "CharacterSheets"), join(gameDir, "CharacterSheets"), { recursive: true });
   }
 
   const meta: GameMeta = {
@@ -111,7 +116,6 @@ export function createGame(campaign: string): GameMeta {
 export function syncTemplateFiles(id: string): void {
   const gameDir = getGameDir(id);
   const templatesDir = getTemplatesDir();
-  cpSync(join(templatesDir, "SYSTEM.md"), join(gameDir, "SYSTEM.md"));
   cpSync(join(templatesDir, "roll_dice.py"), join(gameDir, "roll_dice.py"));
 }
 

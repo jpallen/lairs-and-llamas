@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { render } from "ink";
 import { readFileSync } from "fs";
-import { join } from "path";
 import { App } from "./App.js";
 import { GameMenu } from "./components/GameMenu.js";
 import { DiceDemo } from "./components/Dice.js";
@@ -16,6 +15,7 @@ import {
   syncTemplateFiles,
   loadSettings,
   saveSettings,
+  getSystemPromptPath,
 } from "./gameManager.js";
 import { debug, clearDebugLog } from "./debug.js";
 import { createFilteredStdin, cleanup } from "./mouseFilter.js";
@@ -33,6 +33,8 @@ function Main() {
   const [games, setGames] = useState(() => listGames());
   const [debugMode, setDebugMode] = useState(initialDebugMode);
   const [showHelp, setShowHelp] = useState(() => loadSettings().showHelp);
+  const [model, setModel] = useState(() => loadSettings().model ?? "claude-opus-4-6");
+  const [effort, setEffort] = useState(() => loadSettings().effort ?? "medium");
 
   const handleSelectGame = useCallback((id: string) => {
     syncTemplateFiles(id);
@@ -79,18 +81,40 @@ function Main() {
   }
 
   const gameDir = getGameDir(selectedGame.id);
-  const systemPrompt = readFileSync(join(gameDir, "SYSTEM.md"), "utf-8");
+  const systemPrompt = readFileSync(getSystemPromptPath(), "utf-8");
 
   return (
     <App
       systemPrompt={systemPrompt}
       cwd={gameDir}
       gameDir={gameDir}
+      model={model}
+      effort={effort}
       debugMode={debugMode}
       initialSessionId={selectedGame.sessionId}
       initialMessages={sessionHistory}
       initialPrompt={initialPrompt}
       onSessionInit={handleSessionInit}
+      onClearSession={() => {
+        if (selectedGame) {
+          const updated = { ...selectedGame, sessionId: null };
+          saveGameMeta(updated);
+          setSelectedGame(updated);
+        }
+      }}
+      onSwitchModel={() => setModel((m) => {
+        const next = m === "claude-opus-4-6" ? "claude-sonnet-4-6" : "claude-opus-4-6";
+        const settings = loadSettings();
+        saveSettings({ ...settings, model: next });
+        return next;
+      })}
+      onSwitchEffort={() => setEffort((e) => {
+        const cycle = { low: "medium" as const, medium: "high" as const, high: "low" as const };
+        const next = cycle[e];
+        const settings = loadSettings();
+        saveSettings({ ...settings, effort: next });
+        return next;
+      })}
       showHelp={showHelp}
       onToggleHelp={() => setShowHelp((h) => {
         const next = !h;

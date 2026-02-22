@@ -1,10 +1,11 @@
 export interface ChatMessage {
   id: string;
-  role: "user" | "assistant" | "thinking" | "dice";
+  role: "user" | "assistant" | "thinking" | "dice" | "tool";
   content: string;
   isStreaming: boolean;
   diceRolls?: DiceRoll[];
   animate?: boolean;
+  toolName?: string;
 }
 
 export interface DiceRoll {

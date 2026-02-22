@@ -181,6 +181,7 @@ export function CharacterSheetViewer({ gameDir, height, contentWidth, onClose }:
     if (key.downArrow) scrollDown(1);
     if (key.pageUp) scrollUp(contentHeight);
     if (key.pageDown) scrollDown(contentHeight);
+    if (input === " " && key.shift) { scrollUp(contentHeight); return; }
     if (input === " ") scrollDown(contentHeight);
   });
 

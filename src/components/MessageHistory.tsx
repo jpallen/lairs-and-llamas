@@ -19,12 +19,13 @@ interface Props {
   debugMode?: boolean;
   currentToolCall: ToolCallInfo | null;
   statusMessage?: string | null;
+  scrollRevision?: number;
   isActive?: boolean;
 }
 
 interface Line {
   text: string;
-  role: "user" | "assistant" | "thinking" | "dice" | "blank" | "table-border" | "table-row" | "status";
+  role: "user" | "assistant" | "thinking" | "dice" | "tool" | "blank" | "table-border" | "table-row" | "status";
   diceRoll?: DiceRoll;
   animate?: boolean;
   colWidths?: number[];
@@ -65,7 +66,7 @@ function getStatusLabel(toolCall: ToolCallInfo | null, isThinking: boolean): str
   return `${toolName}...`;
 }
 
-export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode, currentToolCall, statusMessage, isActive = true }: Props) {
+export function MessageHistory({ messages, height, contentWidth, isProcessing, debugMode, currentToolCall, statusMessage, scrollRevision = 0, isActive = true }: Props) {
   const [scrollOffset, setScrollOffset] = useState(0);
   const [lastUserMessageCount, setLastUserMessageCount] = useState(0);
 
@@ -82,6 +83,12 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
         for (const line of wrapped) {
           lines.push({ text: line, role: "thinking" });
         }
+        continue;
+      }
+
+      if (msg.role === "tool") {
+        if (!debugMode) continue;
+        lines.push({ text: `${msg.toolName}: ${msg.content}`, role: "tool" });
         continue;
       }
 
@@ -129,12 +136,16 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
       const lastThinking = [...messages].reverse().find(m => m.role === "thinking");
       const hasVisibleContent = !!lastAssistant?.isStreaming &&
         stripDmThinking(lastAssistant.content || "").length > 0;
+      const isStreamingAnything = !!lastAssistant?.isStreaming || !!lastThinking?.isStreaming;
       const isCurrentlyThinking = !hasVisibleContent && (
         !!lastThinking?.isStreaming ||
-        (!!lastAssistant?.isStreaming && /<thinking>/.test(lastAssistant.content || ""))
+        (!!lastAssistant?.isStreaming && /<(?:thinking|hide)>/.test(lastAssistant.content || ""))
       );
 
-      const statusLabel = statusMessage ?? getStatusLabel(currentToolCall, isCurrentlyThinking);
+      const statusLabel = statusMessage ?? getStatusLabel(
+        isStreamingAnything ? null : currentToolCall,
+        isCurrentlyThinking
+      );
       if (statusLabel && !hasVisibleContent) {
         lines.push({ text: "", role: "blank" });
         lines.push({ text: statusLabel, role: "status" });
@@ -179,6 +190,23 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
     }
   }, [userMessageCount, lastUserMessageCount, allLines]);
 
+  // Snap to last user message when parent signals a scroll reset
+  useEffect(() => {
+    if (scrollRevision === 0) return;
+    let lineIndex = 0;
+    for (let i = allLines.length - 1; i >= 0; i--) {
+      if (
+        allLines[i].role === "user" &&
+        allLines[i].text !== "" &&
+        (i === 0 || allLines[i - 1].role !== "user")
+      ) {
+        lineIndex = i;
+        break;
+      }
+    }
+    setScrollOffset(lineIndex);
+  }, [scrollRevision]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Cmd+arrows and Shift+arrows always work (don't conflict with text input)
   // Plain arrows only scroll when processing (input bar is disabled)
   // PageUp/PageDown always work
@@ -218,7 +246,7 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
   }
 
   return (
-    <Box flexDirection="column" height={height}>
+    <Box flexDirection="column" flexGrow={1} flexShrink={1} height={height}>
       {paddedLines.map((line, i) => (
         <Box key={`${scrollOffset}-${i}`} width={contentWidth}>
           {line.role === "dice" && line.diceRoll ? (
@@ -235,6 +263,8 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
             <MarkdownLine baseColor={ASSISTANT_COLOR}>{line.text}</MarkdownLine>
           ) : line.role === "thinking" && line.text !== "" ? (
             <Text color={THINKING_COLOR} dimColor>{line.text}</Text>
+          ) : line.role === "tool" && line.text !== "" ? (
+            <Text color={THINKING_COLOR} dimColor>  ◆ {line.text}</Text>
           ) : line.role === "status" ? (
             <Text color="#8B4513" dimColor>  ~ {line.text}</Text>
           ) : (
