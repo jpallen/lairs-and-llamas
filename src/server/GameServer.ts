@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from "ws";
 import { query, type Query } from "@anthropic-ai/claude-agent-sdk";
-import { parseDiceOutput } from "../types.js";
+import { parseDiceOutput, summarizeToolInput } from "../types.js";
 import type { ChatMessage, ToolCallInfo } from "../types.js";
 import type { EffortLevel } from "../gameManager.js";
 import type { ClientMessage, ServerMessage, StateSyncPayload } from "../protocol.js";
@@ -243,7 +243,6 @@ export class GameServer {
         resume: this.sessionId ?? undefined,
         model: this.model,
         effort: this.effort,
-        maxThinkingTokens: 1024,
       },
     });
     this.queryRef = gen;
@@ -568,25 +567,3 @@ export class GameServer {
   }
 }
 
-function summarizeToolInput(
-  toolName: string,
-  input: Record<string, unknown>
-): string {
-  switch (toolName) {
-    case "Read":
-      return String(input.file_path ?? "");
-    case "Write":
-    case "Edit":
-      return String(input.file_path ?? "");
-    case "Bash":
-      return String(input.command ?? "").slice(0, 80);
-    case "Glob":
-      return String(input.pattern ?? "");
-    case "Grep":
-      return `/${input.pattern ?? ""}/ in ${input.path ?? "."}`;
-    case "Task":
-      return String(input.description ?? "");
-    default:
-      return JSON.stringify(input).slice(0, 60);
-  }
-}

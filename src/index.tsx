@@ -111,9 +111,6 @@ function Main() {
       let initialMessages: ChatMessage[] = [];
       if (meta.sessionId) {
         initialMessages = loadSessionHistory(meta.id, meta.sessionId);
-        if (!initialDebugMode) {
-          initialMessages = initialMessages.filter((m) => m.role !== "thinking");
-        }
       }
 
       setModel(currentModel);

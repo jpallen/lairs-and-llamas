@@ -9,7 +9,7 @@ import {
   writeFileSync,
   readdirSync,
 } from "fs";
-import { parseDiceOutput } from "./types.js";
+import { parseDiceOutput, summarizeToolInput } from "./types.js";
 import type { GameMeta, ChatMessage } from "./types.js";
 
 const APP_BASE = join(homedir(), ".lairs-and-llamas");
@@ -229,6 +229,19 @@ export function loadSessionHistory(gameId: string, sessionId: string): ChatMessa
             content: thinkingBlocks.map((b: any) => b.thinking).join(""),
             isStreaming: false,
           });
+        }
+        // Extract tool_use blocks
+        for (const block of content) {
+          if (block.type === "tool_use") {
+            const input = block.input as Record<string, unknown>;
+            messages.push({
+              id: `${entry.uuid}-tool-${block.id}`,
+              role: "tool",
+              content: summarizeToolInput(block.name, input),
+              toolName: block.name,
+              isStreaming: false,
+            });
+          }
         }
         // Extract text blocks
         const textBlocks = content.filter((b: any) => b.type === "text");

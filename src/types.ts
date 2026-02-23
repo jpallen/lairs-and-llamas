@@ -46,6 +46,29 @@ export function parseDiceOutput(output: string): DiceRoll[] {
   return rolls;
 }
 
+export function summarizeToolInput(
+  toolName: string,
+  input: Record<string, unknown>
+): string {
+  switch (toolName) {
+    case "Read":
+      return String(input.file_path ?? "");
+    case "Write":
+    case "Edit":
+      return String(input.file_path ?? "");
+    case "Bash":
+      return String(input.command ?? "").slice(0, 80);
+    case "Glob":
+      return String(input.pattern ?? "");
+    case "Grep":
+      return `/${input.pattern ?? ""}/ in ${input.path ?? "."}`;
+    case "Task":
+      return String(input.description ?? "");
+    default:
+      return JSON.stringify(input).slice(0, 60);
+  }
+}
+
 export interface GameMeta {
   id: string;
   sessionId: string | null;
