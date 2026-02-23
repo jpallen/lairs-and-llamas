@@ -24,11 +24,13 @@ def main():
     parser = argparse.ArgumentParser(description="Roll D&D dice")
     parser.add_argument("dice", nargs="+", help="Dice specs (e.g. 2d10 1d20)")
     parser.add_argument("-d", "--desc", help="Description for the roll (e.g. \"Pip's Initiative\")")
+    parser.add_argument("-m", "--modifier", type=int, default=0, help="Modifier to add to the total")
     args = parser.parse_args()
 
     prefix = f"{args.desc} | " if args.desc else ""
 
     total = 0
+    lines = []
     for die_str in args.dice:
         try:
             count, sides = parse_die(die_str)
@@ -36,13 +38,23 @@ def main():
             roll_total = sum(rolls)
             total += roll_total
             rolls_str = ", ".join(str(r) for r in rolls)
-            print(f"{prefix}{die_str}: [{rolls_str}] = {roll_total}")
+            lines.append(f"{prefix}{die_str}: [{rolls_str}] = {roll_total}")
         except ValueError as e:
             print(f"Error: {e}", file=sys.stderr)
             sys.exit(1)
 
-    if len(args.dice) > 1:
-        print(f"{prefix}Total: {total}")
+    mod = args.modifier
+    mod_suffix = ""
+    if mod != 0:
+        sign = "+" if mod > 0 else "-"
+        mod_suffix = f" ({sign} {abs(mod)} = {total + mod})"
+
+    if len(args.dice) == 1:
+        print(f"{lines[0]}{mod_suffix}")
+    else:
+        for line in lines:
+            print(line)
+        print(f"{prefix}Total: {total}{mod_suffix}")
 
 
 if __name__ == "__main__":

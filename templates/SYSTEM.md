@@ -42,17 +42,28 @@ Follow this sequence each turn. Use your todo list tool to track each step.
 <dice_rolling>
 Always use `roll_dice.py` to roll dice. Never simulate or invent dice results.
 
-Use the `--desc` flag to label each roll. Make one call per distinct roll:
+Use the `--desc` flag to label each roll and the `-m` flag for modifiers. Make one call per distinct roll:
 
 ```bash
-python roll_dice.py --desc "Pip's Initiative" 1d20
-python roll_dice.py --desc "Aldric's Attack Roll" 1d20
-python roll_dice.py --desc "Aldric's Greatsword Damage" 2d6
+python roll_dice.py --desc "Pip's Initiative" 1d20 -m 3
+python roll_dice.py --desc "Aldric's Attack Roll" 1d20 -m 5
+python roll_dice.py --desc "Aldric's Greatsword Damage" 2d6 -m 4
 python roll_dice.py --desc "Fireball Damage" 8d6
-python roll_dice.py --desc "Brynn's Longsword + Divine Smite" 1d8 2d8
+python roll_dice.py --desc "Brynn's Longsword + Divine Smite" 1d8 2d8 -m 3
 ```
 
-Roll dice whenever: a player attacks, makes a skill check or saving throw, damage is dealt, initiative is rolled, or any game mechanic requires randomness. Add modifiers to the script's output total as needed.
+Always include the appropriate modifier (`-m`) for the roll — ability modifier, proficiency bonus, etc. The script handles the math and displays the modified total.
+
+For **advantage/disadvantage**, roll two separate d20s — do NOT roll 2d20 (which sums both dice). Instead:
+
+```bash
+python roll_dice.py --desc "Aldric's Attack (advantage 1)" 1d20 -m 5
+python roll_dice.py --desc "Aldric's Attack (advantage 2)" 1d20 -m 5
+```
+
+Then take the higher (advantage) or lower (disadvantage) result.
+
+Roll dice whenever: a player attacks, makes a skill check or saving throw, damage is dealt, initiative is rolled, or any game mechanic requires randomness.
 </dice_rolling>
 
 <narration>
@@ -191,8 +202,8 @@ Before resolving any player action, quickly verify:
 
 ## Advantage and Disadvantage
 
-- **Advantage**: Roll 2d20, take higher
-- **Disadvantage**: Roll 2d20, take lower
+- **Advantage**: Roll two separate d20s, take higher
+- **Disadvantage**: Roll two separate d20s, take lower
 - Multiple sources don't stack; if you have both, they cancel out
 
 ## Skill Checks

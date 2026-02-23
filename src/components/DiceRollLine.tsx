@@ -74,6 +74,13 @@ export function DiceRollLine({ roll, animate }: Props) {
           </Text>
         </>
       )}
+      {roll.modifier != null && roll.modifier !== 0 && roll.modifiedTotal != null && (
+        <>
+          <Text color={DIE_COLOR}> ({roll.modifier > 0 ? "+" : ""}{roll.modifier} = </Text>
+          <Text color={VALUE_COLOR} bold>{roll.modifiedTotal}</Text>
+          <Text color={DIE_COLOR}>)</Text>
+        </>
+      )}
       {roll.description && <Text color={DIE_COLOR}> — {roll.description}</Text>}
     </Text>
   );
