@@ -92,6 +92,7 @@ export class GameServer {
                   debug("Client authenticated, total:", this.clients.size);
                   this.send(ws, { type: "authResult", success: true });
                   this.send(ws, { type: "stateSync", state: this.getStateSnapshot() });
+                  this.broadcastClientCount();
 
                   // Auto-send initial prompt on first successful auth
                   if (this.initialPrompt) {
@@ -123,8 +124,9 @@ export class GameServer {
         ws.on("close", () => {
           clearTimeout(authTimeout);
           this.pendingClients.delete(ws);
-          this.clients.delete(ws);
+          const wasAuthenticated = this.clients.delete(ws);
           debug("Client disconnected, remaining:", this.clients.size);
+          if (wasAuthenticated) this.broadcastClientCount();
         });
       });
     });
@@ -167,6 +169,7 @@ export class GameServer {
       sessionId: this.sessionId,
       model: this.model,
       effort: this.effort,
+      clientCount: this.clients.size,
     };
   }
 
@@ -183,6 +186,10 @@ export class GameServer {
         ws.send(data);
       }
     }
+  }
+
+  private broadcastClientCount(): void {
+    this.broadcast({ type: "clientCount", count: this.clients.size });
   }
 
   private handleClientMessage(msg: ClientMessage): void {

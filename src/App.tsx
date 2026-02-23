@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Box, Text, useInput, useStdout } from "ink";
 import { execSync } from "child_process";
 import { MessageHistory } from "./components/MessageHistory.js";
@@ -30,8 +30,9 @@ interface AppProps {
   onEffortChanged: (effort: EffortLevel) => void;
   onToggleHelp: () => void;
   onToggleDebug: () => void;
-  onStartTunnel?: () => Promise<string>;
+  onStartTunnel?: (onStatusChange: (status: { open: boolean; url?: string }) => void) => Promise<string>;
   onStopTunnel?: () => Promise<void>;
+  isTunnelOpen?: () => boolean;
   onBack: () => void;
   onQuit: () => void;
 }
@@ -40,7 +41,7 @@ type OverlayMode = "none" | "menu" | "settings" | "character-sheet" | "journal" 
 
 const BORDER = "#8B4513";
 
-function ShareOverlay({ loading, shareUrl, height, width, onClose }: { loading: boolean; shareUrl: string | null; height: number; width: number; onClose: () => void }) {
+function ShareOverlay({ loading, shareUrl, clientCount, tunnelOpen, height, width, onClose }: { loading: boolean; shareUrl: string | null; clientCount: number; tunnelOpen: boolean; height: number; width: number; onClose: () => void }) {
   const [copied, setCopied] = useState(false);
   const [cursor, setCursor] = useState(0);
 
@@ -61,7 +62,7 @@ function ShareOverlay({ loading, shareUrl, height, width, onClose }: { loading: 
     if (key.downArrow) setCursor(1);
   });
 
-  const contentLines = loading ? 3 : shareUrl ? 9 : 3;
+  const contentLines = loading ? 3 : shareUrl ? 11 : 3;
   const topPad = Math.max(0, Math.floor((height - contentLines) / 2));
 
   return (
@@ -94,7 +95,13 @@ function ShareOverlay({ loading, shareUrl, height, width, onClose }: { loading: 
           </Box>
           <Text> </Text>
           <Box justifyContent="center" width={width}>
-            <Text color="#8B4513" dimColor>Tunnel stays active until you leave the game.</Text>
+            <Text color="#D2691E">{clientCount} player{clientCount !== 1 ? "s" : ""} connected</Text>
+          </Box>
+          <Text> </Text>
+          <Box justifyContent="center" width={width}>
+            <Text color={tunnelOpen ? "#8B4513" : "#CD853F"} dimColor={tunnelOpen}>
+              {tunnelOpen ? "Tunnel active" : "Tunnel disconnected — reconnecting..."}
+            </Text>
           </Box>
         </>
       ) : (
@@ -110,15 +117,25 @@ function ShareOverlay({ loading, shareUrl, height, width, onClose }: { loading: 
   );
 }
 
-export function App({ serverUrl, password, gameDir, model, effort, debugMode, showHelp, onSessionInit, onClearSession, onModelChanged, onEffortChanged, onToggleHelp, onToggleDebug, onStartTunnel, onStopTunnel, onBack, onQuit }: AppProps) {
-  const { messages, currentToolCall, isProcessing, statusMessage, pendingQuestion, isConnected, authError, sendMessage, answerQuestion, interrupt, clearSession, switchModel, switchEffort } =
+export function App({ serverUrl, password, gameDir, model, effort, debugMode, showHelp, onSessionInit, onClearSession, onModelChanged, onEffortChanged, onToggleHelp, onToggleDebug, onStartTunnel, onStopTunnel, isTunnelOpen, onBack, onQuit }: AppProps) {
+  const { messages, currentToolCall, isProcessing, statusMessage, pendingQuestion, isConnected, authError, clientCount, sendMessage, answerQuestion, interrupt, clearSession, switchModel, switchEffort } =
     useClaudeSession({ serverUrl, password, onSessionInit, onClearSession, onModelChanged: onModelChanged, onEffortChanged: onEffortChanged });
 
   const [overlayMode, setOverlayMode] = useState<OverlayMode>("none");
   const [scrollRevision, setScrollRevision] = useState(0);
   const [tunnelUrl, setTunnelUrl] = useState<string | null>(null);
   const [tunnelLoading, setTunnelLoading] = useState(false);
+  const [tunnelOpen, setTunnelOpen] = useState(true);
   const [inputValue, setInputValue] = useState("");
+
+  // Poll tunnel status every 15s when tunnel is active
+  useEffect(() => {
+    if (!tunnelUrl || !isTunnelOpen) return;
+    const interval = setInterval(() => {
+      setTunnelOpen(isTunnelOpen());
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [tunnelUrl, isTunnelOpen]);
 
   const { stdout } = useStdout();
   const terminalHeight = stdout?.rows ?? 24;
@@ -206,9 +223,15 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
         if (onStartTunnel && !tunnelUrl) {
           setTunnelLoading(true);
           debug("Share: requesting tunnel start");
-          onStartTunnel().then((url) => {
+          onStartTunnel((status) => {
+            setTunnelOpen(status.open);
+            if (status.url) {
+              setTunnelUrl(status.url);
+            }
+          }).then((url) => {
             debug("Share: tunnel ready at", url);
             setTunnelUrl(url);
+            setTunnelOpen(true);
             setTunnelLoading(false);
           }).catch((err) => {
             debug("Share: tunnel failed:", err?.message ?? err);
@@ -317,6 +340,8 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
         <ShareOverlay
           loading={tunnelLoading}
           shareUrl={shareUrl}
+          clientCount={clientCount}
+          tunnelOpen={tunnelOpen}
           height={innerHeight}
           width={contentWidth}
           onClose={() => setOverlayMode("none")}

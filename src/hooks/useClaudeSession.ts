@@ -53,6 +53,7 @@ export function useClaudeSession({
   const [pendingQuestion, setPendingQuestion] = useState<PendingQuestion | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [clientCount, setClientCount] = useState(0);
 
   const wsRef = useRef<WebSocket | null>(null);
   const callbackRefs = useRef({ onSessionInit, onClearSession, onModelChanged, onEffortChanged });
@@ -102,6 +103,7 @@ export function useClaudeSession({
           setIsProcessing(msg.state.isProcessing);
           setStatusMessage(msg.state.statusMessage);
           setPendingQuestion(msg.state.pendingQuestion);
+          setClientCount(msg.state.clientCount);
           if (msg.state.sessionId) {
             callbackRefs.current.onSessionInit(msg.state.sessionId);
           }
@@ -162,6 +164,10 @@ export function useClaudeSession({
           setStatusMessage(null);
           setPendingQuestion(null);
           callbackRefs.current.onClearSession();
+          break;
+
+        case "clientCount":
+          setClientCount(msg.count);
           break;
 
         case "error":
@@ -226,6 +232,7 @@ export function useClaudeSession({
     pendingQuestion,
     isConnected,
     authError,
+    clientCount,
     sendMessage,
     answerQuestion,
     interrupt,

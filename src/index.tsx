@@ -18,7 +18,7 @@ import {
   getSystemPromptPath,
 } from "./gameManager.js";
 import type { EffortLevel } from "./gameManager.js";
-import { startGameServer, stopGameServer, stopAllServers, startTunnel, stopTunnel } from "./server/index.js";
+import { startGameServer, stopGameServer, stopAllServers, startTunnel, stopTunnel, isTunnelOpen } from "./server/index.js";
 import { debug, clearDebugLog } from "./debug.js";
 import { createFilteredStdin, cleanup } from "./mouseFilter.js";
 import type { ChatMessage, GameMeta } from "./types.js";
@@ -218,8 +218,9 @@ function Main() {
         return next;
       })}
       onToggleDebug={() => setDebugMode((d) => !d)}
-      onStartTunnel={() => startTunnel(selectedGame.id)}
+      onStartTunnel={(onStatusChange) => startTunnel(selectedGame.id, onStatusChange)}
       onStopTunnel={() => stopTunnel(selectedGame.id)}
+      isTunnelOpen={() => isTunnelOpen(selectedGame.id)}
       onBack={handleBack}
       onQuit={() => { stopAllServers().then(() => { cleanup(); process.exit(0); }); }}
     />

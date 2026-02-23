@@ -5,6 +5,8 @@ import { debug } from "../debug.js";
 
 const servers = new Map<string, GameServer>();
 const tunnels = new Map<string, Tunnel>();
+const tunnelCallbacks = new Map<string, (status: { open: boolean; url?: string }) => void>();
+const stoppedTunnels = new Set<string>();
 
 export async function startGameServer(
   gameId: string,
@@ -29,21 +31,16 @@ export async function stopGameServer(gameId: string): Promise<void> {
   }
 }
 
-export async function startTunnel(gameId: string): Promise<string> {
-  await stopTunnel(gameId);
-
-  const server = servers.get(gameId);
-  if (!server) throw new Error("No server running for game " + gameId);
-
-  const port = server.getPort();
-  debug("Starting tunnel for", gameId, "on port", port);
+async function openTunnel(gameId: string, port: number): Promise<Tunnel> {
+  const subdomain = `lairs-${gameId.slice(0, 8)}`;
+  debug("Opening tunnel for", gameId, "on port", port, "subdomain", subdomain);
 
   const timeout = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new Error("Tunnel connection timed out after 30s")), 30000)
   );
 
   const tunnel = await Promise.race([
-    localtunnel({ port }),
+    localtunnel({ port, subdomain }),
     timeout,
   ]);
 
@@ -54,7 +51,50 @@ export async function startTunnel(gameId: string): Promise<string> {
   tunnel.on("close", () => {
     debug("Tunnel closed for", gameId);
     tunnels.delete(gameId);
+    const cb = tunnelCallbacks.get(gameId);
+    cb?.({ open: false });
+
+    // Auto-reconnect unless explicitly stopped
+    if (!stoppedTunnels.has(gameId) && servers.has(gameId)) {
+      debug("Auto-reconnecting tunnel for", gameId);
+      const server = servers.get(gameId)!;
+      setTimeout(() => {
+        if (stoppedTunnels.has(gameId) || !servers.has(gameId)) return;
+        openTunnel(gameId, server.getPort())
+          .then((newTunnel) => {
+            tunnels.set(gameId, newTunnel);
+            const wsUrl = newTunnel.url.replace(/^http/, "ws");
+            debug("Tunnel reconnected for", gameId, "at", wsUrl);
+            cb?.({ open: true, url: wsUrl });
+          })
+          .catch((err) => {
+            debug("Tunnel reconnect failed for", gameId, ":", err?.message);
+          });
+      }, 2000);
+    }
   });
+
+  return tunnel;
+}
+
+export type TunnelStatusCallback = (status: { open: boolean; url?: string }) => void;
+
+export async function startTunnel(
+  gameId: string,
+  onStatusChange?: TunnelStatusCallback,
+): Promise<string> {
+  await stopTunnel(gameId);
+  stoppedTunnels.delete(gameId);
+
+  const server = servers.get(gameId);
+  if (!server) throw new Error("No server running for game " + gameId);
+
+  if (onStatusChange) {
+    tunnelCallbacks.set(gameId, onStatusChange);
+  }
+
+  const port = server.getPort();
+  const tunnel = await openTunnel(gameId, port);
 
   tunnels.set(gameId, tunnel);
   const wsUrl = tunnel.url.replace(/^http/, "ws");
@@ -62,7 +102,13 @@ export async function startTunnel(gameId: string): Promise<string> {
   return wsUrl;
 }
 
+export function isTunnelOpen(gameId: string): boolean {
+  return tunnels.has(gameId);
+}
+
 export async function stopTunnel(gameId: string): Promise<void> {
+  stoppedTunnels.add(gameId);
+  tunnelCallbacks.delete(gameId);
   const tunnel = tunnels.get(gameId);
   if (tunnel) {
     tunnel.close();

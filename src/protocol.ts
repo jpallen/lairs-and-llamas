@@ -23,6 +23,7 @@ export interface StateSyncPayload {
   sessionId: string | null;
   model: string;
   effort: EffortLevel;
+  clientCount: number;
 }
 
 export type ServerMessage =
@@ -38,5 +39,6 @@ export type ServerMessage =
   | { type: "modelChanged"; model: string }
   | { type: "effortChanged"; effort: EffortLevel }
   | { type: "sessionCleared" }
+  | { type: "clientCount"; count: number }
   | { type: "authResult"; success: boolean; error?: string }
   | { type: "error"; message: string };
