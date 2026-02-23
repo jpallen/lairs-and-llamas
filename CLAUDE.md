@@ -42,7 +42,6 @@ npm start -- --dice    # Dice component demo
 - Model: `opus`
 - Tools: Claude Code preset (Read, Write, Edit, Bash, Glob, Grep, etc.)
 - Permissions: `bypassPermissions` (DM needs full file access)
-- Settings: loads project settings (`settingSources: ["project"]`) for Stop hook
 - Streaming: `includePartialMessages: true`
 
 ### Color Scheme
@@ -62,6 +61,6 @@ When Claude calls `roll_dice.py` via Bash, the TUI:
 3. Shows Unicode die symbols with 1.2s rolling animation before settling
 4. Die symbols: △(d4) ▢(d6) ◇(d8) ⬨(d10) ⬠(d12) ⬡(d20)
 
-## Game State Hook
+## Game State Updates
 
-`.claude/settings.json` contains a Stop hook that audits game state — checks character sheets, campaign notes, and journal are updated after each turn.
+After each DM turn, `GameServer.ts` automatically sends `<update-notes-reminder/>` to the same Claude session. Claude silently updates game state files (character sheets, campaign notes, journal, combat tracker) following the rules in `SYSTEM.md`, then replies with `<notes-up-to-date/>`. Both messages are filtered from the player display on the client side.

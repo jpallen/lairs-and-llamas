@@ -102,7 +102,7 @@ export function createGame(campaign: string): GameMeta {
   }
 
   // Copy shared directories
-  for (const dir of ["Rules", "CharacterSheets", ".claude"]) {
+  for (const dir of ["Rules", "CharacterSheets"]) {
     cpSync(join(templatesDir, dir), join(gameDir, dir), { recursive: true });
   }
 

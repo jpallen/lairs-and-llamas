@@ -75,6 +75,9 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
   const allLines = useMemo(() => {
     const lines: Line[] = [];
     for (const msg of messages) {
+      // Hide notes-reminder system messages from display
+      if (msg.role === "user" && msg.content === "<update-notes-reminder/>") continue;
+
       if (msg.role === "thinking") {
         if (!debugMode) continue;
         if (!msg.content && !msg.isStreaming) continue;
@@ -168,7 +171,9 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
     [maxOffset]
   );
 
-  const userMessageCount = messages.filter((m) => m.role === "user").length;
+  const userMessageCount = messages.filter(
+    (m) => m.role === "user" && m.content !== "<update-notes-reminder/>"
+  ).length;
 
   useEffect(() => {
     if (userMessageCount > lastUserMessageCount && userMessageCount > 0) {

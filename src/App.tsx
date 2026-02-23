@@ -5,7 +5,8 @@ import { MessageHistory } from "./components/MessageHistory.js";
 
 import { InputBar } from "./components/InputBar.js";
 import { MenuOverlay } from "./components/MenuOverlay.js";
-import { CharacterSheetViewer } from "./components/CharacterSheetViewer.js";
+import { CharacterSheetViewer, type CharacterSheetState } from "./components/CharacterSheetViewer.js";
+import { SpellBrowser } from "./components/SpellBrowser.js";
 import { QuestionInput } from "./components/QuestionOverlay.js";
 import { FileViewer } from "./components/FileViewer.js";
 import { HelpPanel } from "./components/HelpPanel.js";
@@ -37,7 +38,7 @@ interface AppProps {
   onQuit: () => void;
 }
 
-type OverlayMode = "none" | "menu" | "settings" | "character-sheet" | "journal" | "share";
+type OverlayMode = "none" | "menu" | "settings" | "character-sheet" | "journal" | "share" | "spell-browser";
 
 const BORDER = "#8B4513";
 
@@ -127,6 +128,9 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
   const [tunnelLoading, setTunnelLoading] = useState(false);
   const [tunnelOpen, setTunnelOpen] = useState(true);
   const [inputValue, setInputValue] = useState("");
+  const [spellBrowserInitialSpell, setSpellBrowserInitialSpell] = useState<string | null>(null);
+  const [returnToCharSheet, setReturnToCharSheet] = useState(false);
+  const [savedCharSheetState, setSavedCharSheetState] = useState<CharacterSheetState | null>(null);
 
   // Poll tunnel status every 15s when tunnel is active
   useEffect(() => {
@@ -143,7 +147,8 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
 
   const helpVisible = showHelp && overlayMode === "none";
   const isCharSheet = overlayMode === "character-sheet";
-  const frameWidth = Math.min(isCharSheet ? 120 : 80, terminalWidth);
+  const isWideOverlay = isCharSheet || overlayMode === "spell-browser";
+  const frameWidth = Math.min(isWideOverlay ? 120 : 80, terminalWidth);
   // Box with borderStyle="round" uses 2 chars for borders + 2 for padding
   const contentWidth = frameWidth - 4;
 
@@ -176,6 +181,12 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
     // Ctrl+P toggles character sheet (local games only)
     if (input === "p" && key.ctrl && gameDir) {
       setOverlayMode((m) => m === "character-sheet" ? "none" : "character-sheet");
+      return;
+    }
+    // Ctrl+S toggles spell browser (local games only)
+    if (input === "s" && key.ctrl && gameDir) {
+      setOverlayMode((m) => m === "spell-browser" ? "none" : "spell-browser");
+      setSpellBrowserInitialSpell(null);
       return;
     }
     // Ctrl+O toggles journal (local games only)
@@ -217,6 +228,10 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
         break;
       case "journal":
         setOverlayMode("journal");
+        break;
+      case "spell-browser":
+        setOverlayMode("spell-browser");
+        setSpellBrowserInitialSpell(null);
         break;
       case "share":
         setOverlayMode("share");
@@ -283,6 +298,7 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
             { label: "Clear Session", action: "clear-session" },
             { label: "Settings", action: "settings" },
             ...(gameDir ? [{ label: "Character Sheets", action: "character-sheets" }] : []),
+            ...(gameDir ? [{ label: "Spell Browser", action: "spell-browser" }] : []),
             ...(gameDir ? [{ label: "Journal", action: "journal" }] : []),
             ...(gameDir && onStartTunnel ? [{ label: "Share Game", action: "share" }] : []),
             { label: `Toggle Help ${showHelp ? "(on)" : "(off)"}`, action: "toggle-help" },
@@ -318,7 +334,36 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
           gameDir={gameDir}
           height={innerHeight}
           contentWidth={contentWidth}
-          onClose={() => setOverlayMode("none")}
+          initialState={savedCharSheetState ?? undefined}
+          onClose={() => {
+            setSavedCharSheetState(null);
+            setOverlayMode("none");
+          }}
+          onViewSpell={(spellName, state) => {
+            setSavedCharSheetState(state);
+            setSpellBrowserInitialSpell(spellName);
+            setReturnToCharSheet(true);
+            setOverlayMode("spell-browser");
+          }}
+        />
+      );
+    }
+    if (overlayMode === "spell-browser" && gameDir) {
+      return (
+        <SpellBrowser
+          gameDir={gameDir}
+          height={innerHeight}
+          contentWidth={contentWidth}
+          initialSpell={spellBrowserInitialSpell ?? undefined}
+          onClose={() => {
+            if (returnToCharSheet) {
+              setReturnToCharSheet(false);
+              setOverlayMode("character-sheet");
+            } else {
+              setOverlayMode("none");
+            }
+            setSpellBrowserInitialSpell(null);
+          }}
         />
       );
     }

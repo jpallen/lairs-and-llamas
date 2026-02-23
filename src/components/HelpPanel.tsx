@@ -16,6 +16,7 @@ interface HelpEntry {
 const HOTKEYS: HelpEntry[] = [
   { key: "Esc", desc: "Menu" },
   { key: "Ctrl+P", desc: "Characters" },
+  { key: "Ctrl+S", desc: "Spells" },
   { key: "Ctrl+O", desc: "Journal" },
   { key: "Ctrl+B", desc: "Verbose" },
   { key: "Ctrl+G", desc: "Toggle Help" },

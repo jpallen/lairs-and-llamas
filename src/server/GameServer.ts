@@ -222,6 +222,8 @@ export class GameServer {
     this.processingLock = true;
     debug("Sending message:", text);
 
+    const isNotesReminder = text === "<update-notes-reminder/>";
+
     const id = crypto.randomUUID();
     const userMsg: ChatMessage = { id, role: "user", content: text, isStreaming: false };
     this.messages.push(userMsg);
@@ -239,7 +241,6 @@ export class GameServer {
         canUseTool: this.canUseTool.bind(this),
         includePartialMessages: true,
         resume: this.sessionId ?? undefined,
-        settingSources: ["project"],
         model: this.model,
         effort: this.effort,
         maxThinkingTokens: 1024,
@@ -247,7 +248,7 @@ export class GameServer {
     });
     this.queryRef = gen;
 
-    this.processMessages(gen).catch((err) => {
+    this.processMessages(gen, isNotesReminder).catch((err) => {
       debug("Claude session error:", err?.message ?? err, err?.stack);
       this.isProcessing = false;
       this.processingLock = false;
@@ -361,7 +362,10 @@ export class GameServer {
     this.broadcast({ type: "sessionCleared" });
   }
 
-  private async processMessages(gen: ReturnType<typeof query>): Promise<void> {
+  private async processMessages(
+    gen: ReturnType<typeof query>,
+    isNotesReminder = false,
+  ): Promise<void> {
     let currentAssistantId: string | null = null;
     let currentThinkingId: string | null = null;
 
@@ -553,6 +557,11 @@ export class GameServer {
           if (m) m.isStreaming = false;
           this.broadcast({ type: "messageUpdate", id: currentAssistantId, patch: { isStreaming: false } });
           currentAssistantId = null;
+        }
+
+        // After a normal DM turn, trigger silent notes update
+        if (!isNotesReminder) {
+          this.sendMessage("<update-notes-reminder/>");
         }
       }
     }

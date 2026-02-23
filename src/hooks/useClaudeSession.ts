@@ -25,6 +25,7 @@ const HIDDEN_TAG_OPEN_RE = /<(?:thinking|hide)>[\s\S]*$/;
 export function stripDmThinking(content: string): string {
   let result = content.replace(HIDDEN_TAG_CLOSED_RE, "");
   result = result.replace(HIDDEN_TAG_OPEN_RE, "");
+  result = result.replace(/<notes-up-to-date\s*\/>\s*/g, "");
   result = result.replace(/\n{3,}/g, "\n\n");
   return result.trim();
 }

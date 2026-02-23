@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { render } from "ink";
+import { Box, Text, render, useStdout } from "ink";
 import { readFileSync } from "fs";
 import { App } from "./App.js";
 import { GameMenu } from "./components/GameMenu.js";
@@ -28,6 +28,59 @@ clearDebugLog();
 const initialDebugMode = process.argv.includes("--debug");
 const diceDemo = process.argv.includes("--dice");
 
+const BORDER = "#8B4513";
+
+const TORCH_FRAMES = [
+  ["  (  ", " (#) ", " (#) ", "  |  "],
+  [" (%} ", "(#%) ", " {#) ", "  |  "],
+  ["  }  ", " {#} ", " (#} ", "  |  "],
+  [" {%( ", " %#( ", " (#% ", "  |  "],
+];
+
+const FLAME_COLORS = ["#FF6B35", "#CD853F", "#B8860B", "#FF8C42"];
+
+function LoadingScreen({ campaign }: { campaign: string }) {
+  const { stdout } = useStdout();
+  const terminalHeight = stdout?.rows ?? 24;
+  const terminalWidth = stdout?.columns ?? 80;
+  const frameWidth = Math.min(80, terminalWidth);
+
+  const [frame, setFrame] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setFrame((f) => (f + 1) % TORCH_FRAMES.length), 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  const torch = TORCH_FRAMES[frame];
+  const flameColor = FLAME_COLORS[frame];
+
+  return (
+    <Box width={terminalWidth} height={terminalHeight} justifyContent="center">
+      <Box
+        flexDirection="column"
+        width={frameWidth}
+        height={terminalHeight}
+        borderStyle="round"
+        borderColor={BORDER}
+        paddingLeft={1}
+        paddingRight={1}
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Text> </Text>
+        {torch.map((line, i) => (
+          <Text key={i} color={i < 3 ? flameColor : "#8B4513"}>{line}</Text>
+        ))}
+        <Text> </Text>
+        <Text color="#B8860B" bold>Preparing Your Adventure</Text>
+        <Text> </Text>
+        <Text color="#D2691E">{campaign}</Text>
+        <Text> </Text>
+      </Box>
+    </Box>
+  );
+}
+
 function Main() {
   const [selectedGame, setSelectedGame] = useState<GameMeta | null>(null);
   const [serverPort, setServerPort] = useState<number | null>(null);
@@ -39,70 +92,78 @@ function Main() {
   const [effort, setEffort] = useState<EffortLevel>(() => loadSettings().effort ?? "medium");
 
   const handleSelectGame = useCallback((id: string) => {
-    syncTemplateFiles(id);
+    // Set meta immediately so loading screen renders
     const meta = loadGameMeta(id);
-    meta.lastPlayedAt = new Date().toISOString();
-    saveGameMeta(meta);
-
-    const gameDir = getGameDir(meta.id);
-    const systemPrompt = readFileSync(getSystemPromptPath(), "utf-8");
-    const settings = loadSettings();
-    const currentModel = settings.model ?? "claude-opus-4-6";
-    const currentEffort = settings.effort ?? "medium";
-
-    let initialMessages: ChatMessage[] = [];
-    if (meta.sessionId) {
-      initialMessages = loadSessionHistory(meta.id, meta.sessionId);
-      if (!initialDebugMode) {
-        initialMessages = initialMessages.filter((m) => m.role !== "thinking");
-      }
-    }
-
     setSelectedGame(meta);
-    setModel(currentModel);
-    setEffort(currentEffort);
 
-    startGameServer(meta.id, {
-      systemPrompt,
-      cwd: gameDir,
-      model: currentModel,
-      effort: currentEffort,
-      password: meta.password,
-      initialSessionId: meta.sessionId,
-      initialMessages,
-    }).then(({ port }) => {
-      debug("Game server ready on port", port);
-      setServerPort(port);
-    });
+    // Defer heavy work to next tick so React can paint the loading screen
+    setTimeout(() => {
+      syncTemplateFiles(id);
+      meta.lastPlayedAt = new Date().toISOString();
+      saveGameMeta(meta);
+
+      const gameDir = getGameDir(meta.id);
+      const systemPrompt = readFileSync(getSystemPromptPath(), "utf-8");
+      const settings = loadSettings();
+      const currentModel = settings.model ?? "claude-opus-4-6";
+      const currentEffort = settings.effort ?? "medium";
+
+      let initialMessages: ChatMessage[] = [];
+      if (meta.sessionId) {
+        initialMessages = loadSessionHistory(meta.id, meta.sessionId);
+        if (!initialDebugMode) {
+          initialMessages = initialMessages.filter((m) => m.role !== "thinking");
+        }
+      }
+
+      setModel(currentModel);
+      setEffort(currentEffort);
+
+      startGameServer(meta.id, {
+        systemPrompt,
+        cwd: gameDir,
+        model: currentModel,
+        effort: currentEffort,
+        password: meta.password,
+        initialSessionId: meta.sessionId,
+        initialMessages,
+      }).then(({ port }) => {
+        debug("Game server ready on port", port);
+        setServerPort(port);
+      });
+    }, 0);
   }, []);
 
   const handleCreateGame = useCallback((campaign: string) => {
     const meta = createGame(campaign);
     setGames(listGames());
-
-    const gameDir = getGameDir(meta.id);
-    const systemPrompt = readFileSync(getSystemPromptPath(), "utf-8");
-    const settings = loadSettings();
-    const currentModel = settings.model ?? "claude-opus-4-6";
-    const currentEffort = settings.effort ?? "medium";
-
     setSelectedGame(meta);
-    setModel(currentModel);
-    setEffort(currentEffort);
 
-    startGameServer(meta.id, {
-      systemPrompt,
-      cwd: gameDir,
-      model: currentModel,
-      effort: currentEffort,
-      password: meta.password,
-      initialSessionId: null,
-      initialMessages: [],
-      initialPrompt: "Begin the adventure",
-    }).then(({ port }) => {
-      debug("Game server ready on port", port);
-      setServerPort(port);
-    });
+    // Defer heavy work so React can paint the loading screen
+    setTimeout(() => {
+      const gameDir = getGameDir(meta.id);
+      const systemPrompt = readFileSync(getSystemPromptPath(), "utf-8");
+      const settings = loadSettings();
+      const currentModel = settings.model ?? "claude-opus-4-6";
+      const currentEffort = settings.effort ?? "medium";
+
+      setModel(currentModel);
+      setEffort(currentEffort);
+
+      startGameServer(meta.id, {
+        systemPrompt,
+        cwd: gameDir,
+        model: currentModel,
+        effort: currentEffort,
+        password: meta.password,
+        initialSessionId: null,
+        initialMessages: [],
+        initialPrompt: "Begin the adventure",
+      }).then(({ port }) => {
+        debug("Game server ready on port", port);
+        setServerPort(port);
+      });
+    }, 0);
   }, []);
 
   const handleJoinRemote = useCallback((url: string, password: string) => {
@@ -167,8 +228,7 @@ function Main() {
 
   if (!selectedGame || serverPort === null) {
     if (selectedGame && serverPort === null) {
-      // Server is starting up, show nothing (brief flash)
-      return null;
+      return <LoadingScreen campaign={selectedGame.campaign ?? selectedGame.id} />;
     }
     return (
       <GameMenu
