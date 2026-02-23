@@ -44,4 +44,5 @@ export interface GameMeta {
   createdAt: string;
   lastPlayedAt: string;
   campaign?: string;
+  password: string;
 }

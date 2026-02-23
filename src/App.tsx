@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Box, Text, useInput, useStdout } from "ink";
+import { execSync } from "child_process";
 import { MessageHistory } from "./components/MessageHistory.js";
 
 import { InputBar } from "./components/InputBar.js";
@@ -10,13 +11,15 @@ import { FileViewer } from "./components/FileViewer.js";
 import { HelpPanel } from "./components/HelpPanel.js";
 import { useClaudeSession } from "./hooks/useClaudeSession.js";
 import { cleanup } from "./mouseFilter.js";
+import { debug } from "./debug.js";
 import { join } from "path";
 import type { ChatMessage } from "./types.js";
 import type { EffortLevel } from "./gameManager.js";
 
 interface AppProps {
-  port: number;
-  gameDir: string;
+  serverUrl: string;
+  password: string;
+  gameDir: string | null;
   model: string;
   effort: EffortLevel;
   debugMode: boolean;
@@ -27,20 +30,95 @@ interface AppProps {
   onEffortChanged: (effort: EffortLevel) => void;
   onToggleHelp: () => void;
   onToggleDebug: () => void;
+  onStartTunnel?: () => Promise<string>;
+  onStopTunnel?: () => Promise<void>;
   onBack: () => void;
   onQuit: () => void;
 }
 
-type OverlayMode = "none" | "menu" | "settings" | "character-sheet" | "journal";
+type OverlayMode = "none" | "menu" | "settings" | "character-sheet" | "journal" | "share";
 
 const BORDER = "#8B4513";
 
-export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessionInit, onClearSession, onModelChanged, onEffortChanged, onToggleHelp, onToggleDebug, onBack, onQuit }: AppProps) {
-  const { messages, currentToolCall, isProcessing, statusMessage, pendingQuestion, sendMessage, answerQuestion, interrupt, clearSession, switchModel, switchEffort } =
-    useClaudeSession({ port, onSessionInit, onClearSession, onModelChanged: onModelChanged, onEffortChanged: onEffortChanged });
+function ShareOverlay({ loading, shareUrl, height, width, onClose }: { loading: boolean; shareUrl: string | null; height: number; width: number; onClose: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const [cursor, setCursor] = useState(0);
+
+  useInput((_input, key) => {
+    if (key.escape) {
+      onClose();
+      return;
+    }
+    if (shareUrl && key.return && cursor === 0) {
+      try {
+        execSync(`printf '%s' ${JSON.stringify(shareUrl)} | pbcopy`);
+        setCopied(true);
+      } catch {
+        // pbcopy not available
+      }
+    }
+    if (key.upArrow) setCursor(0);
+    if (key.downArrow) setCursor(1);
+  });
+
+  const contentLines = loading ? 3 : shareUrl ? 9 : 3;
+  const topPad = Math.max(0, Math.floor((height - contentLines) / 2));
+
+  return (
+    <Box flexDirection="column" height={height} width={width}>
+      {Array.from({ length: topPad }).map((_, i) => (
+        <Text key={`pad-${i}`}> </Text>
+      ))}
+      <Box justifyContent="center" width={width}>
+        <Text color="#B8860B" bold>{"=== Share Game ==="}</Text>
+      </Box>
+      <Text> </Text>
+      {loading ? (
+        <Box justifyContent="center" width={width}>
+          <Text color="#D2691E">Starting tunnel...</Text>
+        </Box>
+      ) : shareUrl ? (
+        <>
+          <Box justifyContent="center" width={width}>
+            <Text color="#D2691E">Share this URL with players:</Text>
+          </Box>
+          <Text> </Text>
+          <Box justifyContent="center" width={width}>
+            <Text color="#CD853F" bold>{shareUrl}</Text>
+          </Box>
+          <Text> </Text>
+          <Box justifyContent="center" width={width}>
+            <Text color={cursor === 0 ? "#CD853F" : "#8B4513"}>
+              {cursor === 0 ? "> " : "  "}{copied ? "Copied!" : "Copy URL"}
+            </Text>
+          </Box>
+          <Text> </Text>
+          <Box justifyContent="center" width={width}>
+            <Text color="#8B4513" dimColor>Tunnel stays active until you leave the game.</Text>
+          </Box>
+        </>
+      ) : (
+        <Box justifyContent="center" width={width}>
+          <Text color="#D2691E">Failed to start tunnel.</Text>
+        </Box>
+      )}
+      <Text> </Text>
+      <Box justifyContent="center" width={width}>
+        <Text color="#8B4513" dimColor>{"(Esc to close)"}</Text>
+      </Box>
+    </Box>
+  );
+}
+
+export function App({ serverUrl, password, gameDir, model, effort, debugMode, showHelp, onSessionInit, onClearSession, onModelChanged, onEffortChanged, onToggleHelp, onToggleDebug, onStartTunnel, onStopTunnel, onBack, onQuit }: AppProps) {
+  const { messages, currentToolCall, isProcessing, statusMessage, pendingQuestion, isConnected, authError, sendMessage, answerQuestion, interrupt, clearSession, switchModel, switchEffort } =
+    useClaudeSession({ serverUrl, password, onSessionInit, onClearSession, onModelChanged: onModelChanged, onEffortChanged: onEffortChanged });
 
   const [overlayMode, setOverlayMode] = useState<OverlayMode>("none");
   const [scrollRevision, setScrollRevision] = useState(0);
+  const [tunnelUrl, setTunnelUrl] = useState<string | null>(null);
+  const [tunnelLoading, setTunnelLoading] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   const { stdout } = useStdout();
   const terminalHeight = stdout?.rows ?? 24;
@@ -78,13 +156,13 @@ export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessi
       setOverlayMode("menu");
       return;
     }
-    // Ctrl+P toggles character sheet
-    if (input === "p" && key.ctrl) {
+    // Ctrl+P toggles character sheet (local games only)
+    if (input === "p" && key.ctrl && gameDir) {
       setOverlayMode((m) => m === "character-sheet" ? "none" : "character-sheet");
       return;
     }
-    // Ctrl+O toggles journal
-    if (input === "o" && key.ctrl) {
+    // Ctrl+O toggles journal (local games only)
+    if (input === "o" && key.ctrl && gameDir) {
       setOverlayMode((m) => m === "journal" ? "none" : "journal");
       return;
     }
@@ -122,6 +200,21 @@ export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessi
         break;
       case "journal":
         setOverlayMode("journal");
+        break;
+      case "share":
+        setOverlayMode("share");
+        if (onStartTunnel && !tunnelUrl) {
+          setTunnelLoading(true);
+          debug("Share: requesting tunnel start");
+          onStartTunnel().then((url) => {
+            debug("Share: tunnel ready at", url);
+            setTunnelUrl(url);
+            setTunnelLoading(false);
+          }).catch((err) => {
+            debug("Share: tunnel failed:", err?.message ?? err);
+            setTunnelLoading(false);
+          });
+        }
         break;
       case "toggle-help":
         onToggleHelp();
@@ -166,8 +259,9 @@ export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessi
             ...(isProcessing ? [{ label: "Interrupt", action: "interrupt" }] : []),
             { label: "Clear Session", action: "clear-session" },
             { label: "Settings", action: "settings" },
-            { label: "Character Sheets", action: "character-sheets" },
-            { label: "Journal", action: "journal" },
+            ...(gameDir ? [{ label: "Character Sheets", action: "character-sheets" }] : []),
+            ...(gameDir ? [{ label: "Journal", action: "journal" }] : []),
+            ...(gameDir && onStartTunnel ? [{ label: "Share Game", action: "share" }] : []),
             { label: `Toggle Help ${showHelp ? "(on)" : "(off)"}`, action: "toggle-help" },
             { label: `Toggle Verbose Mode ${debugMode ? "(on)" : "(off)"}`, action: "toggle-debug" },
             { label: "Back to Menu", action: "back" },
@@ -195,7 +289,7 @@ export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessi
         />
       );
     }
-    if (overlayMode === "character-sheet") {
+    if (overlayMode === "character-sheet" && gameDir) {
       return (
         <CharacterSheetViewer
           gameDir={gameDir}
@@ -205,7 +299,7 @@ export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessi
         />
       );
     }
-    if (overlayMode === "journal") {
+    if (overlayMode === "journal" && gameDir) {
       return (
         <FileViewer
           filePath={join(gameDir, "JOURNAL.md")}
@@ -217,8 +311,51 @@ export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessi
         />
       );
     }
+    if (overlayMode === "share") {
+      const shareUrl = tunnelUrl ? `${tunnelUrl}?password=${password}` : null;
+      return (
+        <ShareOverlay
+          loading={tunnelLoading}
+          shareUrl={shareUrl}
+          height={innerHeight}
+          width={contentWidth}
+          onClose={() => setOverlayMode("none")}
+        />
+      );
+    }
     return null;
   };
+
+  // Handle Esc on auth error to go back
+  useInput((_input, key) => {
+    if (key.escape && authError) {
+      onBack();
+    }
+  }, { isActive: !!authError });
+
+  if (!isConnected && !authError) {
+    return (
+      <Box width={terminalWidth} height={terminalHeight} justifyContent="center">
+        <Box flexDirection="column" width={frameWidth} height={terminalHeight} borderStyle="round" borderColor={BORDER} paddingLeft={1} paddingRight={1} justifyContent="center" alignItems="center">
+          <Text color="#D2691E">Connecting...</Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (authError) {
+    return (
+      <Box width={terminalWidth} height={terminalHeight} justifyContent="center">
+        <Box flexDirection="column" width={frameWidth} height={terminalHeight} borderStyle="round" borderColor={BORDER} paddingLeft={1} paddingRight={1} justifyContent="center" alignItems="center">
+          <Text color="#B8860B" bold>Connection Failed</Text>
+          <Text> </Text>
+          <Text color="#D2691E">{authError}</Text>
+          <Text> </Text>
+          <Text color="#8B4513" dimColor>{"Press Esc to go back"}</Text>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -255,7 +392,7 @@ export function App({ port, gameDir, model, effort, debugMode, showHelp, onSessi
                 width={contentWidth}
               />
             ) : (
-              <InputBar onSubmit={sendMessage} isProcessing={isProcessing} disabled={overlayMode !== "none"} />
+              <InputBar value={inputValue} onChange={setInputValue} onSubmit={sendMessage} isProcessing={isProcessing} disabled={overlayMode !== "none"} />
             )}
           </>
         )}

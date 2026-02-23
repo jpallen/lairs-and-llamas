@@ -48,6 +48,7 @@ function getStatusLabel(toolCall: ToolCallInfo | null, isThinking: boolean): str
     if (/rules/i.test(path)) return "Reading rules...";
     if (/charactersheet/i.test(path)) return "Reading character sheets...";
     if (/journal/i.test(path)) return "Reading journal...";
+    if (/combat\.md/i.test(path)) return "Reviewing the battlefield...";
     if (/campaign/i.test(path)) return "Reading campaign notes...";
     if (/system/i.test(path)) return "Reading system prompt...";
     return "Reading files...";
@@ -55,6 +56,7 @@ function getStatusLabel(toolCall: ToolCallInfo | null, isThinking: boolean): str
   if (toolName === "Write" || toolName === "Edit") {
     if (/journal/i.test(path)) return "Updating journal...";
     if (/charactersheet/i.test(path)) return "Updating character sheets...";
+    if (/combat\.md/i.test(path)) return "Tracking combat...";
     if (/campaign/i.test(path)) return "Updating campaign notes...";
     return "Writing files...";
   }

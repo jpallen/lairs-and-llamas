@@ -4,6 +4,7 @@ import type { EffortLevel } from "./gameManager.js";
 // === Client → Server messages ===
 
 export type ClientMessage =
+  | { type: "auth"; password: string }
   | { type: "sendMessage"; text: string }
   | { type: "answerQuestion"; answers: Record<string, string> }
   | { type: "interrupt" }
@@ -37,4 +38,5 @@ export type ServerMessage =
   | { type: "modelChanged"; model: string }
   | { type: "effortChanged"; effort: EffortLevel }
   | { type: "sessionCleared" }
+  | { type: "authResult"; success: boolean; error?: string }
   | { type: "error"; message: string };

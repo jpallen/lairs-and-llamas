@@ -30,7 +30,8 @@ export function stripDmThinking(content: string): string {
 }
 
 interface ClaudeSessionOptions {
-  port: number;
+  serverUrl: string;
+  password: string;
   onSessionInit: (sessionId: string) => void;
   onClearSession: () => void;
   onModelChanged?: (model: string) => void;
@@ -38,7 +39,8 @@ interface ClaudeSessionOptions {
 }
 
 export function useClaudeSession({
-  port,
+  serverUrl,
+  password,
   onSessionInit,
   onClearSession,
   onModelChanged,
@@ -49,17 +51,22 @@ export function useClaudeSession({
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [pendingQuestion, setPendingQuestion] = useState<PendingQuestion | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const callbackRefs = useRef({ onSessionInit, onClearSession, onModelChanged, onEffortChanged });
   callbackRefs.current = { onSessionInit, onClearSession, onModelChanged, onEffortChanged };
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://127.0.0.1:${port}`);
+    setIsConnected(false);
+    setAuthError(null);
+    const ws = new WebSocket(serverUrl);
     wsRef.current = ws;
 
     ws.on("open", () => {
-      debug("WebSocket connected to port", port);
+      debug("WebSocket connected to", serverUrl);
+      ws.send(JSON.stringify({ type: "auth", password }));
     });
 
     ws.on("message", (data) => {
@@ -81,6 +88,14 @@ export function useClaudeSession({
 
     function handleServerMessage(msg: ServerMessage): void {
       switch (msg.type) {
+        case "authResult":
+          if (msg.success) {
+            setIsConnected(true);
+          } else {
+            setAuthError(msg.error ?? "Authentication failed");
+          }
+          break;
+
         case "stateSync":
           setMessages(msg.state.messages);
           setCurrentToolCall(msg.state.currentToolCall);
@@ -159,7 +174,7 @@ export function useClaudeSession({
       ws.close();
       wsRef.current = null;
     };
-  }, [port]);
+  }, [serverUrl, password]);
 
   const sendWs = useCallback((msg: ClientMessage) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -209,6 +224,8 @@ export function useClaudeSession({
     isProcessing,
     statusMessage,
     pendingQuestion,
+    isConnected,
+    authError,
     sendMessage,
     answerQuestion,
     interrupt,

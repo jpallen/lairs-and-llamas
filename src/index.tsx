@@ -18,7 +18,7 @@ import {
   getSystemPromptPath,
 } from "./gameManager.js";
 import type { EffortLevel } from "./gameManager.js";
-import { startGameServer, stopGameServer, stopAllServers } from "./server/index.js";
+import { startGameServer, stopGameServer, stopAllServers, startTunnel, stopTunnel } from "./server/index.js";
 import { debug, clearDebugLog } from "./debug.js";
 import { createFilteredStdin, cleanup } from "./mouseFilter.js";
 import type { ChatMessage, GameMeta } from "./types.js";
@@ -31,6 +31,7 @@ const diceDemo = process.argv.includes("--dice");
 function Main() {
   const [selectedGame, setSelectedGame] = useState<GameMeta | null>(null);
   const [serverPort, setServerPort] = useState<number | null>(null);
+  const [remoteConnection, setRemoteConnection] = useState<{ url: string; password: string } | null>(null);
   const [games, setGames] = useState(() => listGames());
   const [debugMode, setDebugMode] = useState(initialDebugMode);
   const [showHelp, setShowHelp] = useState(() => loadSettings().showHelp);
@@ -66,6 +67,7 @@ function Main() {
       cwd: gameDir,
       model: currentModel,
       effort: currentEffort,
+      password: meta.password,
       initialSessionId: meta.sessionId,
       initialMessages,
     }).then(({ port }) => {
@@ -93,6 +95,7 @@ function Main() {
       cwd: gameDir,
       model: currentModel,
       effort: currentEffort,
+      password: meta.password,
       initialSessionId: null,
       initialMessages: [],
       initialPrompt: "Begin the adventure",
@@ -100,6 +103,10 @@ function Main() {
       debug("Game server ready on port", port);
       setServerPort(port);
     });
+  }, []);
+
+  const handleJoinRemote = useCallback((url: string, password: string) => {
+    setRemoteConnection({ url, password });
   }, []);
 
   const handleSessionInit = useCallback(
@@ -114,11 +121,49 @@ function Main() {
 
   const handleBack = useCallback(() => {
     if (selectedGame) {
+      stopTunnel(selectedGame.id);
       stopGameServer(selectedGame.id);
     }
     setSelectedGame(null);
     setServerPort(null);
+    setRemoteConnection(null);
   }, [selectedGame]);
+
+  // Remote connection mode
+  if (remoteConnection) {
+    return (
+      <App
+        serverUrl={remoteConnection.url}
+        password={remoteConnection.password}
+        gameDir={null}
+        model={model}
+        effort={effort}
+        debugMode={debugMode}
+        showHelp={showHelp}
+        onSessionInit={() => {}}
+        onClearSession={() => {}}
+        onModelChanged={(m) => {
+          setModel(m);
+          const settings = loadSettings();
+          saveSettings({ ...settings, model: m });
+        }}
+        onEffortChanged={(e) => {
+          setEffort(e);
+          const settings = loadSettings();
+          saveSettings({ ...settings, effort: e });
+        }}
+        onToggleHelp={() => setShowHelp((h) => {
+          const next = !h;
+          const settings = loadSettings();
+          saveSettings({ ...settings, showHelp: next });
+          return next;
+        })}
+        onToggleDebug={() => setDebugMode((d) => !d)}
+        onBack={() => setRemoteConnection(null)}
+        onQuit={() => { cleanup(); process.exit(0); }}
+      />
+    );
+  }
 
   if (!selectedGame || serverPort === null) {
     if (selectedGame && serverPort === null) {
@@ -131,6 +176,7 @@ function Main() {
         campaigns={listCampaigns()}
         onSelectGame={handleSelectGame}
         onCreateGame={handleCreateGame}
+        onJoinRemote={handleJoinRemote}
         onQuit={() => { stopAllServers().then(() => { cleanup(); process.exit(0); }); }}
       />
     );
@@ -140,7 +186,8 @@ function Main() {
 
   return (
     <App
-      port={serverPort}
+      serverUrl={`ws://127.0.0.1:${serverPort}`}
+      password={selectedGame.password}
       gameDir={gameDir}
       model={model}
       effort={effort}
@@ -171,6 +218,8 @@ function Main() {
         return next;
       })}
       onToggleDebug={() => setDebugMode((d) => !d)}
+      onStartTunnel={() => startTunnel(selectedGame.id)}
+      onStopTunnel={() => stopTunnel(selectedGame.id)}
       onBack={handleBack}
       onQuit={() => { stopAllServers().then(() => { cleanup(); process.exit(0); }); }}
     />

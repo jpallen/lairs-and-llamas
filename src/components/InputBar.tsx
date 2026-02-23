@@ -3,6 +3,8 @@ import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 
 interface Props {
+  value: string;
+  onChange: (text: string) => void;
   onSubmit: (text: string) => void;
   isProcessing: boolean;
   disabled?: boolean;
@@ -10,8 +12,7 @@ interface Props {
 
 const PROMPT_COLOR = "#B8860B"; // dark goldenrod
 
-export function InputBar({ onSubmit, isProcessing, disabled }: Props) {
-  const [value, setValue] = useState("");
+export function InputBar({ value, onChange, onSubmit, isProcessing, disabled }: Props) {
   const suppressRef = useRef(false);
 
   // Detect ctrl combos before ink-text-input appends the character
@@ -26,13 +27,13 @@ export function InputBar({ onSubmit, isProcessing, disabled }: Props) {
       suppressRef.current = false;
       return;
     }
-    setValue(text);
+    onChange(text);
   };
 
   const handleSubmit = (text: string) => {
     if (!text.trim() || isProcessing) return;
     onSubmit(text.trim());
-    setValue("");
+    onChange("");
   };
 
   return (

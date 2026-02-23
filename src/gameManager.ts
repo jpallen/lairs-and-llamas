@@ -27,6 +27,16 @@ export interface AppSettings {
 
 const DEFAULT_SETTINGS: AppSettings = { showHelp: true };
 
+const PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+
+export function generatePassword(): string {
+  let result = "";
+  for (let i = 0; i < 6; i++) {
+    result += PASSWORD_CHARS[Math.floor(Math.random() * PASSWORD_CHARS.length)];
+  }
+  return result;
+}
+
 export function loadSettings(): AppSettings {
   if (!existsSync(SETTINGS_PATH)) return { ...DEFAULT_SETTINGS };
   try {
@@ -108,6 +118,7 @@ export function createGame(campaign: string): GameMeta {
     createdAt: new Date().toISOString(),
     lastPlayedAt: new Date().toISOString(),
     campaign,
+    password: generatePassword(),
   };
   writeFileSync(join(gameDir, "game.json"), JSON.stringify(meta, null, 2));
   return meta;
@@ -121,7 +132,12 @@ export function syncTemplateFiles(id: string): void {
 
 export function loadGameMeta(id: string): GameMeta {
   const metaPath = join(getGameDir(id), "game.json");
-  return JSON.parse(readFileSync(metaPath, "utf-8"));
+  const meta = JSON.parse(readFileSync(metaPath, "utf-8")) as GameMeta;
+  if (!meta.password) {
+    meta.password = generatePassword();
+    writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+  }
+  return meta;
 }
 
 export function saveGameMeta(meta: GameMeta): void {

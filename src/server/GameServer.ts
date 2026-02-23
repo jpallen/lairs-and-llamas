@@ -11,6 +11,7 @@ export interface GameServerOptions {
   cwd: string;
   model: string;
   effort: EffortLevel;
+  password: string;
   initialSessionId: string | null;
   initialMessages: ChatMessage[];
   initialPrompt?: string;
@@ -19,7 +20,9 @@ export interface GameServerOptions {
 export class GameServer {
   private wss: WebSocketServer | null = null;
   private clients = new Set<WebSocket>();
+  private pendingClients = new Set<WebSocket>();
   private port = 0;
+  private password: string;
 
   // Authoritative state
   private messages: ChatMessage[];
@@ -47,6 +50,7 @@ export class GameServer {
     this.cwd = options.cwd;
     this.model = options.model;
     this.effort = options.effort;
+    this.password = options.password;
     this.sessionId = options.initialSessionId;
     this.messages = [...options.initialMessages];
     this.initialPrompt = options.initialPrompt;
@@ -62,25 +66,54 @@ export class GameServer {
       });
 
       this.wss.on("connection", (ws) => {
-        debug("Client connected, total:", this.clients.size + 1);
-        this.clients.add(ws);
+        debug("Client connected, awaiting auth");
+        this.pendingClients.add(ws);
 
-        // Send full state sync
-        this.send(ws, {
-          type: "stateSync",
-          state: this.getStateSnapshot(),
-        });
-
-        // Auto-send initial prompt on first client connection
-        if (this.initialPrompt) {
-          const prompt = this.initialPrompt;
-          this.initialPrompt = undefined;
-          this.sendMessage(prompt);
-        }
+        // 10s auth timeout
+        const authTimeout = setTimeout(() => {
+          if (this.pendingClients.has(ws)) {
+            this.send(ws, { type: "authResult", success: false, error: "Auth timeout" });
+            ws.close();
+            this.pendingClients.delete(ws);
+          }
+        }, 10000);
 
         ws.on("message", (data) => {
           try {
             const msg = JSON.parse(data.toString()) as ClientMessage;
+
+            // If still pending auth, first message must be auth
+            if (this.pendingClients.has(ws)) {
+              if (msg.type === "auth") {
+                clearTimeout(authTimeout);
+                if (msg.password === this.password) {
+                  this.pendingClients.delete(ws);
+                  this.clients.add(ws);
+                  debug("Client authenticated, total:", this.clients.size);
+                  this.send(ws, { type: "authResult", success: true });
+                  this.send(ws, { type: "stateSync", state: this.getStateSnapshot() });
+
+                  // Auto-send initial prompt on first successful auth
+                  if (this.initialPrompt) {
+                    const prompt = this.initialPrompt;
+                    this.initialPrompt = undefined;
+                    this.sendMessage(prompt);
+                  }
+                } else {
+                  debug("Client auth failed: wrong password");
+                  this.send(ws, { type: "authResult", success: false, error: "Invalid password" });
+                  ws.close();
+                  this.pendingClients.delete(ws);
+                }
+              } else {
+                clearTimeout(authTimeout);
+                this.send(ws, { type: "authResult", success: false, error: "Must authenticate first" });
+                ws.close();
+                this.pendingClients.delete(ws);
+              }
+              return;
+            }
+
             this.handleClientMessage(msg);
           } catch (err: any) {
             debug("Bad client message:", err?.message);
@@ -88,6 +121,8 @@ export class GameServer {
         });
 
         ws.on("close", () => {
+          clearTimeout(authTimeout);
+          this.pendingClients.delete(ws);
           this.clients.delete(ws);
           debug("Client disconnected, remaining:", this.clients.size);
         });
@@ -101,6 +136,10 @@ export class GameServer {
         await this.queryRef.interrupt();
       } catch {}
     }
+    for (const ws of this.pendingClients) {
+      ws.close();
+    }
+    this.pendingClients.clear();
     for (const ws of this.clients) {
       ws.close();
     }
