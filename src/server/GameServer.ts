@@ -272,7 +272,8 @@ export class GameServer {
       if (cmd.startsWith("rm ") && !cmd.includes("..") && (
         cmd.includes("/CharacterSheets/") ||
         cmd.includes("/Campaign/") ||
-        cmd.endsWith("/JOURNAL.md")
+        cmd.endsWith("/JOURNAL.md") ||
+        cmd.endsWith("/COMBAT.md")
       )) {
         return { behavior: "allow", updatedInput: input };
       }
@@ -284,11 +285,12 @@ export class GameServer {
       if (
         filePath.includes("/CharacterSheets/") ||
         filePath.endsWith("/JOURNAL.md") ||
+        filePath.endsWith("/COMBAT.md") ||
         filePath.includes("/Campaign/")
       ) {
         return { behavior: "allow", updatedInput: input };
       }
-      return { behavior: "deny", message: "Can only write to CharacterSheets/, JOURNAL.md, or Campaign/." };
+      return { behavior: "deny", message: "Can only write to CharacterSheets/, JOURNAL.md, COMBAT.md, or Campaign/." };
     }
 
     if (toolName === "AskUserQuestion") {
