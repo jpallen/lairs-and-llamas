@@ -19,8 +19,8 @@ export interface PendingQuestion {
   }>;
 }
 
-const HIDDEN_TAG_CLOSED_RE = /<(?:thinking|hide)>[\s\S]*?<\/(?:thinking|hide)>\s*/g;
-const HIDDEN_TAG_OPEN_RE = /<(?:thinking|hide)>[\s\S]*$/;
+const HIDDEN_TAG_CLOSED_RE = /<(?:thinking|hide|notes-up-to-date)>[\s\S]*?<\/(?:thinking|hide|notes-up-to-date)>\s*/g;
+const HIDDEN_TAG_OPEN_RE = /<(?:thinking|hide|notes-up-to-date)>[\s\S]*$/;
 
 export function stripDmThinking(content: string): string {
   let result = content.replace(HIDDEN_TAG_CLOSED_RE, "");

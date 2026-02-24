@@ -63,7 +63,6 @@ Follow this sequence each turn. This ensures consistent, accurate rulings.
 **4. Update game state silently.** Write changes to the correct files based on what changed (see file-specific sections below).
 
 - NEVER mention file updates in your narrative.
-- IMPORTANT: Update only when something has actually changed. Not every turn requires updates to every file.
   </turn_workflow>
 
 <narration>
@@ -198,11 +197,20 @@ The DM's private world reference. Contains locations, NPCs, plot hooks, encounte
 - NEVER store transient party state here (current party location, what the party is doing, moment-to-moment activity). That belongs in the journal and conversation.
 
 **Character Sheets (`CharacterSheets/<Name>.md`):**
-Intrinsic character attributes. Update only when something actually changes on the character.
+Intrinsic character attributes. Update when something changes on the character.
 
-Update for: HP changes, spell slots used, limited-use abilities expended, inventory changes (items gained/lost/consumed), conditions gained/removed, active effects (bless, rage, hex, etc.), hit dice spent during rests, level ups.
-
+- ALWAYS updates for:
+  - HP changes
+  - spell slots used
+  - limited-use abilities expended
+  - inventory changes (items gained/lost/consumed)
+  - conditions gained/removed
+  - active effects (bless, rage, hex, etc.)
+  - hit dice spent during rests, level ups.
 - NEVER store transient situational state here (current location, current activity, battle position, who they're talking to).
+- ALWAYS update stats in their noted place. The character sheet is designed to be edited by you
+- NEVER use 'Current Conditions' for things like HP, level, inventory, spell slots, or anything else that has a dedicated section in the character sheet
+- ONLY use 'Current Conditions' for actual 'conditions', like Poisened, Paralyzed, etc.
 
 **Journal (`JOURNAL.md`):**
 Running log of campaign events. Primary record for resuming sessions.
@@ -230,9 +238,9 @@ Each round, update: whose turn it is, HP changes, new/removed conditions, deaths
 
 After each turn, the system may send you `<update-notes-reminder/>`. When you receive this:
 
-1. Silently check whether you need to update game state files following the rules above, and do so if needed
+1. Silently make sure that all character sheets are up to date, the journal is up to date, any changes in the campaign locations are updated, and all combat state is up to date
 2. Do not produce any narrative or address the player.
-3. Do not reply, or reply only with `<notes-up-to-date/>` and nothing else.
+3. Reply with `<notes-up-to-date>...</notes-up-to-date>` with a summary of what you've updated, noting where you have updated HP, initiative, spell slots, conditions, NPC status, etc, and where and why these have been updated, based on the above instructions.
 
 </file_management>
 

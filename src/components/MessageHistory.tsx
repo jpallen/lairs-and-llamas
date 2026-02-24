@@ -32,6 +32,7 @@ interface Line {
   borderPosition?: "top" | "middle" | "bottom";
   cells?: string[];
   isHeader?: boolean;
+  alignWidth?: number; // for user messages: max line width in this message block
 }
 
 const USER_COLOR = "#CD853F";
@@ -129,9 +130,12 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
         if (lines.length > 0) {
           lines.push({ text: "", role: "blank" });
         }
-        const wrapped = wordWrap(msg.content || "", contentWidth);
+        // Wrap user messages at 85% width so they sit on the right side
+        const userMaxWidth = Math.max(40, Math.floor(contentWidth * 0.85));
+        const wrapped = wordWrap(msg.content || "", userMaxWidth);
+        const maxLen = wrapped.length > 0 ? Math.max(...wrapped.map(l => l.length)) : 0;
         for (const line of wrapped) {
-          lines.push({ text: line, role: msg.role });
+          lines.push({ text: line, role: msg.role, alignWidth: maxLen });
         }
       }
     }
@@ -144,7 +148,7 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
       const isStreamingAnything = !!lastAssistant?.isStreaming || !!lastThinking?.isStreaming;
       const isCurrentlyThinking = !hasVisibleContent && (
         !!lastThinking?.isStreaming ||
-        (!!lastAssistant?.isStreaming && /<(?:thinking|hide)>/.test(lastAssistant.content || ""))
+        (!!lastAssistant?.isStreaming && /<(?:thinking|hide|notes-up-to-date)>/.test(lastAssistant.content || ""))
       );
 
       const statusLabel = statusMessage ?? getStatusLabel(
@@ -264,7 +268,9 @@ export function MessageHistory({ messages, height, contentWidth, isProcessing, d
             <MarkdownTableRow cells={line.cells} colWidths={line.colWidths} isHeader={line.isHeader ?? false} baseColor={ASSISTANT_COLOR} />
           ) : line.role === "user" && line.text !== "" ? (
             <Box justifyContent="flex-end" width={contentWidth}>
-              <Text color={USER_COLOR} bold>{line.text}</Text>
+              <Box width={line.alignWidth ?? line.text.length}>
+                <Text color={USER_COLOR} bold>{line.text}</Text>
+              </Box>
             </Box>
           ) : line.role === "assistant" && line.text !== "" ? (
             <MarkdownLine baseColor={ASSISTANT_COLOR}>{line.text}</MarkdownLine>

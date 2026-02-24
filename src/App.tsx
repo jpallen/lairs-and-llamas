@@ -3,7 +3,7 @@ import { Box, Text, useInput, useStdout } from "ink";
 import { execSync } from "child_process";
 import { MessageHistory } from "./components/MessageHistory.js";
 
-import { InputBar } from "./components/InputBar.js";
+import { InputBar, getInputHeight } from "./components/InputBar.js";
 import { MenuOverlay } from "./components/MenuOverlay.js";
 import { CharacterSheetViewer, type CharacterSheetState } from "./components/CharacterSheetViewer.js";
 import { SpellBrowser } from "./components/SpellBrowser.js";
@@ -163,7 +163,7 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
         }, 0);
         return questionLines + optionLines;
       })()
-    : 1;
+    : getInputHeight(inputValue, contentWidth);
   // border top/bottom = 2, input area
   const chromeHeight = 2 + inputHeight;
   const historyHeight = Math.max(1, terminalHeight - chromeHeight);
@@ -462,7 +462,7 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
                 width={contentWidth}
               />
             ) : (
-              <InputBar value={inputValue} onChange={setInputValue} onSubmit={sendMessage} isProcessing={isProcessing} disabled={overlayMode !== "none"} />
+              <InputBar value={inputValue} onChange={setInputValue} onSubmit={sendMessage} isProcessing={isProcessing} disabled={overlayMode !== "none"} maxWidth={contentWidth} />
             )}
           </>
         )}
