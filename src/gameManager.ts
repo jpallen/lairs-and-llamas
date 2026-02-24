@@ -1,14 +1,7 @@
 import { homedir } from "os";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import {
-  existsSync,
-  mkdirSync,
-  cpSync,
-  readFileSync,
-  writeFileSync,
-  readdirSync,
-} from "fs";
+import { readFile, cp, writeFile, readdir, mkdir, stat } from "fs/promises";
 import { parseDiceOutput, summarizeToolInput } from "./types.js";
 import type { GameMeta, ChatMessage } from "./types.js";
 
@@ -37,18 +30,26 @@ export function generatePassword(): string {
   return result;
 }
 
-export function loadSettings(): AppSettings {
-  if (!existsSync(SETTINGS_PATH)) return { ...DEFAULT_SETTINGS };
+async function exists(path: string): Promise<boolean> {
   try {
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(readFileSync(SETTINGS_PATH, "utf-8")) };
+    await stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadSettings(): Promise<AppSettings> {
+  try {
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(await readFile(SETTINGS_PATH, "utf-8")) };
   } catch {
     return { ...DEFAULT_SETTINGS };
   }
 }
 
-export function saveSettings(settings: AppSettings): void {
-  mkdirSync(APP_BASE, { recursive: true });
-  writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
+export async function saveSettings(settings: AppSettings): Promise<void> {
+  await mkdir(APP_BASE, { recursive: true });
+  await writeFile(SETTINGS_PATH, JSON.stringify(settings, null, 2));
 }
 
 function getProjectRoot(): string {
@@ -67,49 +68,52 @@ export function getSystemPromptPath(): string {
   return join(getTemplatesDir(), "SYSTEM.md");
 }
 
-export function listGames(): GameMeta[] {
-  if (!existsSync(GAMES_BASE)) return [];
-  return readdirSync(GAMES_BASE, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
-    .map((d) => {
-      const metaPath = join(GAMES_BASE, d.name, "game.json");
-      if (!existsSync(metaPath)) return null;
-      return JSON.parse(readFileSync(metaPath, "utf-8")) as GameMeta;
-    })
-    .filter((g): g is GameMeta => g !== null)
-    .sort((a, b) => b.lastPlayedAt.localeCompare(a.lastPlayedAt));
+export async function listGames(): Promise<GameMeta[]> {
+  if (!(await exists(GAMES_BASE))) return [];
+  const entries = await readdir(GAMES_BASE, { withFileTypes: true });
+  const games: GameMeta[] = [];
+  for (const d of entries) {
+    if (!d.isDirectory()) continue;
+    const metaPath = join(GAMES_BASE, d.name, "game.json");
+    if (!(await exists(metaPath))) continue;
+    try {
+      games.push(JSON.parse(await readFile(metaPath, "utf-8")) as GameMeta);
+    } catch { /* skip corrupt entries */ }
+  }
+  return games.sort((a, b) => b.lastPlayedAt.localeCompare(a.lastPlayedAt));
 }
 
-export function listCampaigns(): string[] {
+export async function listCampaigns(): Promise<string[]> {
   const campaignsDir = join(getTemplatesDir(), "campaigns");
-  if (!existsSync(campaignsDir)) return [];
-  return readdirSync(campaignsDir, { withFileTypes: true })
+  if (!(await exists(campaignsDir))) return [];
+  const entries = await readdir(campaignsDir, { withFileTypes: true });
+  return entries
     .filter((d) => d.isDirectory())
     .map((d) => d.name)
     .sort();
 }
 
-export function createGame(campaign: string): GameMeta {
+export async function createGame(campaign: string): Promise<GameMeta> {
   const id = crypto.randomUUID();
   const gameDir = getGameDir(id);
 
   const templatesDir = getTemplatesDir();
-  mkdirSync(gameDir, { recursive: true });
+  await mkdir(gameDir, { recursive: true });
 
   // Copy shared files
   for (const file of ["roll_dice.py", "JOURNAL.md"]) {
-    cpSync(join(templatesDir, file), join(gameDir, file));
+    await cp(join(templatesDir, file), join(gameDir, file));
   }
 
   // Copy shared directories
   for (const dir of ["Rules", "CharacterSheets"]) {
-    cpSync(join(templatesDir, dir), join(gameDir, dir), { recursive: true });
+    await cp(join(templatesDir, dir), join(gameDir, dir), { recursive: true });
   }
 
   // Overlay campaign-specific files
   const campaignDir = join(templatesDir, "campaigns", campaign);
-  if (existsSync(join(campaignDir, "Campaign"))) {
-    cpSync(join(campaignDir, "Campaign"), join(gameDir, "Campaign"), { recursive: true });
+  if (await exists(join(campaignDir, "Campaign"))) {
+    await cp(join(campaignDir, "Campaign"), join(gameDir, "Campaign"), { recursive: true });
   }
 
   const meta: GameMeta = {
@@ -120,46 +124,52 @@ export function createGame(campaign: string): GameMeta {
     campaign,
     password: generatePassword(),
   };
-  writeFileSync(join(gameDir, "game.json"), JSON.stringify(meta, null, 2));
+  await writeFile(join(gameDir, "game.json"), JSON.stringify(meta, null, 2));
   return meta;
 }
 
-export function syncTemplateFiles(id: string): void {
+export async function syncTemplateFiles(id: string): Promise<void> {
   const gameDir = getGameDir(id);
   const templatesDir = getTemplatesDir();
-  cpSync(join(templatesDir, "roll_dice.py"), join(gameDir, "roll_dice.py"));
+  await cp(join(templatesDir, "roll_dice.py"), join(gameDir, "roll_dice.py"));
 }
 
-export function loadGameMeta(id: string): GameMeta {
+export async function loadGameMeta(id: string): Promise<GameMeta> {
   const metaPath = join(getGameDir(id), "game.json");
-  const meta = JSON.parse(readFileSync(metaPath, "utf-8")) as GameMeta;
+  const meta = JSON.parse(await readFile(metaPath, "utf-8")) as GameMeta;
   if (!meta.password) {
     meta.password = generatePassword();
-    writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+    await writeFile(metaPath, JSON.stringify(meta, null, 2));
   }
   return meta;
 }
 
-export function saveGameMeta(meta: GameMeta): void {
+export async function saveGameMeta(meta: GameMeta): Promise<void> {
   const metaPath = join(getGameDir(meta.id), "game.json");
-  writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+  await writeFile(metaPath, JSON.stringify(meta, null, 2));
+}
+
+export async function readSystemPrompt(): Promise<string> {
+  return readFile(getSystemPromptPath(), "utf-8");
 }
 
 function encodePathForClaude(dir: string): string {
   return dir.replace(/[/.]/g, "-");
 }
 
-export function loadSessionHistory(gameId: string, sessionId: string): ChatMessage[] {
-  const gameDir = getGameDir(gameId);
-  const encoded = encodePathForClaude(gameDir);
-  const sessionFile = join(homedir(), ".claude", "projects", encoded, `${sessionId}.jsonl`);
+const PARSE_CHUNK_SIZE = 100;
 
-  if (!existsSync(sessionFile)) return [];
-
-  const lines = readFileSync(sessionFile, "utf-8").trim().split("\n");
+async function parseSessionLines(text: string): Promise<ChatMessage[]> {
+  const lines = text.trim().split("\n");
   const messages: ChatMessage[] = [];
+  let processed = 0;
 
   for (const line of lines) {
+    // Yield to the event loop periodically so animations can render
+    if (++processed % PARSE_CHUNK_SIZE === 0) {
+      await new Promise<void>((r) => setTimeout(r, 0));
+    }
+
     let entry: any;
     try {
       entry = JSON.parse(line);
@@ -258,4 +268,16 @@ export function loadSessionHistory(gameId: string, sessionId: string): ChatMessa
   }
 
   return messages;
+}
+
+export async function loadSessionHistory(gameId: string, sessionId: string): Promise<ChatMessage[]> {
+  const gameDir = getGameDir(gameId);
+  const encoded = encodePathForClaude(gameDir);
+  const sessionFile = join(homedir(), ".claude", "projects", encoded, `${sessionId}.jsonl`);
+  try {
+    const text = await readFile(sessionFile, "utf-8");
+    return parseSessionLines(text);
+  } catch {
+    return [];
+  }
 }

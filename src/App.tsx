@@ -10,7 +10,9 @@ import { SpellBrowser } from "./components/SpellBrowser.js";
 import { QuestionInput } from "./components/QuestionOverlay.js";
 import { FileViewer } from "./components/FileViewer.js";
 import { HelpPanel } from "./components/HelpPanel.js";
+import { CharacterSidebar } from "./components/CharacterSidebar.js";
 import { useClaudeSession } from "./hooks/useClaudeSession.js";
+import { useCharacterStats } from "./hooks/useCharacterStats.js";
 import { cleanup } from "./mouseFilter.js";
 import { debug } from "./debug.js";
 import { join } from "path";
@@ -122,6 +124,8 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
   const { messages, currentToolCall, isProcessing, statusMessage, pendingQuestion, isConnected, authError, clientCount, sendMessage, answerQuestion, interrupt, clearSession, switchModel, switchEffort } =
     useClaudeSession({ serverUrl, password, onSessionInit, onClearSession, onModelChanged: onModelChanged, onEffortChanged: onEffortChanged });
 
+  const characterStats = useCharacterStats(gameDir, messages.length);
+
   const [overlayMode, setOverlayMode] = useState<OverlayMode>("none");
   const [scrollRevision, setScrollRevision] = useState(0);
   const [tunnelUrl, setTunnelUrl] = useState<string | null>(null);
@@ -146,6 +150,7 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
   const terminalWidth = stdout?.columns ?? 80;
 
   const helpVisible = showHelp && overlayMode === "none";
+  const sidebarVisible = characterStats.length > 0 && overlayMode === "none";
   const isCharSheet = overlayMode === "character-sheet";
   const isWideOverlay = isCharSheet || overlayMode === "spell-browser";
   const frameWidth = Math.min(isWideOverlay ? 120 : 80, terminalWidth);
@@ -433,6 +438,7 @@ export function App({ serverUrl, password, gameDir, model, effort, debugMode, sh
       height={terminalHeight}
       justifyContent="center"
     >
+      {sidebarVisible && <CharacterSidebar stats={characterStats} height={terminalHeight} />}
       <Box
         flexDirection="column"
         width={frameWidth}

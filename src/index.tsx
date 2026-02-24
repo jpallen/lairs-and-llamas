@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Box, Text, render, useStdout } from "ink";
-import { readFileSync } from "fs";
 import { App } from "./App.js";
 import { GameMenu } from "./components/GameMenu.js";
 import { DiceDemo } from "./components/Dice.js";
@@ -13,9 +12,9 @@ import {
   getGameDir,
   loadSessionHistory,
   syncTemplateFiles,
+  readSystemPrompt,
   loadSettings,
   saveSettings,
-  getSystemPromptPath,
 } from "./gameManager.js";
 import type { EffortLevel } from "./gameManager.js";
 import { startGameServer, stopGameServer, stopAllServers, startTunnel, stopTunnel, isTunnelOpen } from "./server/index.js";
@@ -85,82 +84,88 @@ function Main() {
   const [selectedGame, setSelectedGame] = useState<GameMeta | null>(null);
   const [serverPort, setServerPort] = useState<number | null>(null);
   const [remoteConnection, setRemoteConnection] = useState<{ url: string; password: string } | null>(null);
-  const [games, setGames] = useState(() => listGames());
+  const [games, setGames] = useState<GameMeta[]>([]);
+  const [campaigns, setCampaigns] = useState<string[]>([]);
   const [debugMode, setDebugMode] = useState(initialDebugMode);
-  const [showHelp, setShowHelp] = useState(() => loadSettings().showHelp);
-  const [model, setModel] = useState(() => loadSettings().model ?? "claude-opus-4-6");
-  const [effort, setEffort] = useState<EffortLevel>(() => loadSettings().effort ?? "medium");
+  const [showHelp, setShowHelp] = useState(true);
+  const [model, setModel] = useState("claude-opus-4-6");
+  const [effort, setEffort] = useState<EffortLevel>("medium");
+  const [ready, setReady] = useState(false);
 
-  const handleSelectGame = useCallback((id: string) => {
-    // Set meta immediately so loading screen renders
-    const meta = loadGameMeta(id);
-    setSelectedGame(meta);
-
-    // Defer heavy work to next tick so React can paint the loading screen
-    setTimeout(() => {
-      syncTemplateFiles(id);
-      meta.lastPlayedAt = new Date().toISOString();
-      saveGameMeta(meta);
-
-      const gameDir = getGameDir(meta.id);
-      const systemPrompt = readFileSync(getSystemPromptPath(), "utf-8");
-      const settings = loadSettings();
-      const currentModel = settings.model ?? "claude-opus-4-6";
-      const currentEffort = settings.effort ?? "medium";
-
-      let initialMessages: ChatMessage[] = [];
-      if (meta.sessionId) {
-        initialMessages = loadSessionHistory(meta.id, meta.sessionId);
-      }
-
-      setModel(currentModel);
-      setEffort(currentEffort);
-
-      startGameServer(meta.id, {
-        systemPrompt,
-        cwd: gameDir,
-        model: currentModel,
-        effort: currentEffort,
-        password: meta.password,
-        initialSessionId: meta.sessionId,
-        initialMessages,
-      }).then(({ port }) => {
-        debug("Game server ready on port", port);
-        setServerPort(port);
-      });
-    }, 0);
+  // Load initial data asynchronously
+  useEffect(() => {
+    (async () => {
+      const [g, c, s] = await Promise.all([listGames(), listCampaigns(), loadSettings()]);
+      setGames(g);
+      setCampaigns(c);
+      setShowHelp(s.showHelp);
+      setModel(s.model ?? "claude-opus-4-6");
+      setEffort(s.effort ?? "medium");
+      setReady(true);
+    })();
   }, []);
 
-  const handleCreateGame = useCallback((campaign: string) => {
-    const meta = createGame(campaign);
-    setGames(listGames());
+  const handleSelectGame = useCallback(async (id: string) => {
+    const meta = await loadGameMeta(id);
     setSelectedGame(meta);
 
-    // Defer heavy work so React can paint the loading screen
-    setTimeout(() => {
-      const gameDir = getGameDir(meta.id);
-      const systemPrompt = readFileSync(getSystemPromptPath(), "utf-8");
-      const settings = loadSettings();
-      const currentModel = settings.model ?? "claude-opus-4-6";
-      const currentEffort = settings.effort ?? "medium";
+    await syncTemplateFiles(id);
+    meta.lastPlayedAt = new Date().toISOString();
+    await saveGameMeta(meta);
 
-      setModel(currentModel);
-      setEffort(currentEffort);
+    const gameDir = getGameDir(meta.id);
+    const systemPrompt = await readSystemPrompt();
+    const settings = await loadSettings();
+    const currentModel = settings.model ?? "claude-opus-4-6";
+    const currentEffort = settings.effort ?? "medium";
 
-      startGameServer(meta.id, {
-        systemPrompt,
-        cwd: gameDir,
-        model: currentModel,
-        effort: currentEffort,
-        password: meta.password,
-        initialSessionId: null,
-        initialMessages: [],
-        initialPrompt: "Begin the adventure",
-      }).then(({ port }) => {
-        debug("Game server ready on port", port);
-        setServerPort(port);
-      });
-    }, 0);
+    let initialMessages: ChatMessage[] = [];
+    if (meta.sessionId) {
+      initialMessages = await loadSessionHistory(meta.id, meta.sessionId);
+    }
+
+    setModel(currentModel);
+    setEffort(currentEffort);
+
+    const { port } = await startGameServer(meta.id, {
+      systemPrompt,
+      cwd: gameDir,
+      model: currentModel,
+      effort: currentEffort,
+      password: meta.password,
+      initialSessionId: meta.sessionId,
+      initialMessages,
+    });
+    debug("Game server ready on port", port);
+    setServerPort(port);
+  }, []);
+
+  const handleCreateGame = useCallback(async (campaign: string) => {
+    const meta = await createGame(campaign);
+    setGames(await listGames());
+    setSelectedGame(meta);
+
+    const gameDir = getGameDir(meta.id);
+    const systemPrompt = await readSystemPrompt();
+    const settings = await loadSettings();
+    const currentModel = settings.model ?? "claude-opus-4-6";
+    const currentEffort = settings.effort ?? "medium";
+
+    setModel(currentModel);
+    setEffort(currentEffort);
+
+    const { port } = await startGameServer(meta.id, {
+      systemPrompt,
+      cwd: gameDir,
+      model: currentModel,
+      effort: currentEffort,
+      password: meta.password,
+      initialSessionId: null,
+      initialMessages: [],
+      initialPrompt: "Begin the adventure",
+    });
+    debug("Game server ready on port", port);
+    setServerPort(port);
   }, []);
 
   const handleJoinRemote = useCallback((url: string, password: string) => {
@@ -168,10 +173,10 @@ function Main() {
   }, []);
 
   const handleSessionInit = useCallback(
-    (sessionId: string) => {
+    async (sessionId: string) => {
       if (!selectedGame) return;
       const updated = { ...selectedGame, sessionId };
-      saveGameMeta(updated);
+      await saveGameMeta(updated);
       setSelectedGame(updated);
     },
     [selectedGame]
@@ -200,20 +205,19 @@ function Main() {
         showHelp={showHelp}
         onSessionInit={() => {}}
         onClearSession={() => {}}
-        onModelChanged={(m) => {
+        onModelChanged={async (m) => {
           setModel(m);
-          const settings = loadSettings();
-          saveSettings({ ...settings, model: m });
+          const settings = await loadSettings();
+          await saveSettings({ ...settings, model: m });
         }}
-        onEffortChanged={(e) => {
+        onEffortChanged={async (e) => {
           setEffort(e);
-          const settings = loadSettings();
-          saveSettings({ ...settings, effort: e });
+          const settings = await loadSettings();
+          await saveSettings({ ...settings, effort: e });
         }}
         onToggleHelp={() => setShowHelp((h) => {
           const next = !h;
-          const settings = loadSettings();
-          saveSettings({ ...settings, showHelp: next });
+          loadSettings().then((s) => saveSettings({ ...s, showHelp: next }));
           return next;
         })}
         onToggleDebug={() => setDebugMode((d) => !d)}
@@ -223,6 +227,8 @@ function Main() {
     );
   }
 
+  if (!ready) return null;
+
   if (!selectedGame || serverPort === null) {
     if (selectedGame && serverPort === null) {
       return <LoadingScreen campaign={selectedGame.campaign ?? selectedGame.id} />;
@@ -230,7 +236,7 @@ function Main() {
     return (
       <GameMenu
         games={games}
-        campaigns={listCampaigns()}
+        campaigns={campaigns}
         onSelectGame={handleSelectGame}
         onCreateGame={handleCreateGame}
         onJoinRemote={handleJoinRemote}
@@ -251,27 +257,26 @@ function Main() {
       debugMode={debugMode}
       showHelp={showHelp}
       onSessionInit={handleSessionInit}
-      onClearSession={() => {
+      onClearSession={async () => {
         if (selectedGame) {
           const updated = { ...selectedGame, sessionId: null };
-          saveGameMeta(updated);
+          await saveGameMeta(updated);
           setSelectedGame(updated);
         }
       }}
-      onModelChanged={(m) => {
+      onModelChanged={async (m) => {
         setModel(m);
-        const settings = loadSettings();
-        saveSettings({ ...settings, model: m });
+        const settings = await loadSettings();
+        await saveSettings({ ...settings, model: m });
       }}
-      onEffortChanged={(e) => {
+      onEffortChanged={async (e) => {
         setEffort(e);
-        const settings = loadSettings();
-        saveSettings({ ...settings, effort: e });
+        const settings = await loadSettings();
+        await saveSettings({ ...settings, effort: e });
       }}
       onToggleHelp={() => setShowHelp((h) => {
         const next = !h;
-        const settings = loadSettings();
-        saveSettings({ ...settings, showHelp: next });
+        loadSettings().then((s) => saveSettings({ ...s, showHelp: next }));
         return next;
       })}
       onToggleDebug={() => setDebugMode((d) => !d)}

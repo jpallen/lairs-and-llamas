@@ -10,6 +10,7 @@ import {
   MarkdownTableBorder,
   type FormattedLine,
 } from "./MarkdownTable.js";
+import { parseCharacterFrontMatter, type CharacterStats } from "../parseCharacterFrontMatter.js";
 
 export interface CharacterSheetState {
   activeTab: number;
@@ -45,6 +46,58 @@ const SPELL_COLOR = "#B8860B";
 const SCROLL_LINES = 3;
 const OUTLINE_WIDTH = 28;
 
+const STAT_LABEL_COLOR = "#B8860B";
+const STAT_VALUE_COLOR = "#D2691E";
+const CONDITION_COLOR = "#CD853F";
+
+function hpBar(current: number, max: number, width: number): string {
+  const filled = max > 0 ? Math.round((current / max) * width) : 0;
+  const clamped = Math.max(0, Math.min(width, filled));
+  return "█".repeat(clamped) + "░".repeat(width - clamped);
+}
+
+function StatsHeader({ stats, width }: { stats: CharacterStats; width: number }) {
+  const hasSlots = Object.values(stats.spell_slots).some((s) => s.total > 0);
+  const slotGroups = Object.keys(stats.spell_slots)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .filter((l) => stats.spell_slots[l].total > 0)
+    .map((l) => {
+      const { total, used } = stats.spell_slots[l];
+      const available = Math.max(0, total - used);
+      return `L${l}:${"●".repeat(available)}${"○".repeat(used)}`;
+    });
+
+  return (
+    <Box flexDirection="column" width={width}>
+      <Box>
+        <Text color={TAB_COLOR} bold>{stats.name}</Text>
+        <Text color={STAT_VALUE_COLOR}>{` — ${stats.race} ${stats.class} L${stats.level}`}</Text>
+      </Box>
+      <Box>
+        <Text color={STAT_LABEL_COLOR}>{"HP "}</Text>
+        <Text color={STAT_VALUE_COLOR}>{hpBar(stats.hp.current, stats.hp.max, 15)}</Text>
+        <Text color={STAT_VALUE_COLOR}>{` ${stats.hp.current}/${stats.hp.max}`}</Text>
+        {stats.hp.temp > 0 && <Text color={STAT_VALUE_COLOR}>{` (+${stats.hp.temp} temp)`}</Text>}
+        <Text color={STAT_VALUE_COLOR}>{"  "}</Text>
+        <Text color={STAT_LABEL_COLOR}>{"AC "}</Text>
+        <Text color={STAT_VALUE_COLOR}>{String(stats.ac)}</Text>
+        {hasSlots && (
+          <>
+            <Text color={STAT_VALUE_COLOR}>{"  "}</Text>
+            <Text color={STAT_LABEL_COLOR}>{"Slots "}</Text>
+            <Text color={STAT_VALUE_COLOR}>{slotGroups.join(" ")}</Text>
+          </>
+        )}
+      </Box>
+      {stats.conditions.length > 0 && (
+        <Text color={CONDITION_COLOR} dimColor>{"Conditions: " + stats.conditions.join(", ")}</Text>
+      )}
+      <Text color={TAB_INACTIVE}>{"─".repeat(width)}</Text>
+    </Box>
+  );
+}
+
 export function CharacterSheetViewer({ gameDir, height, contentWidth, initialState, onClose, onViewSpell }: Props) {
   const [activeTab, setActiveTab] = useState(initialState?.activeTab ?? 0);
   const [scrollOffset, setScrollOffset] = useState(initialState?.scrollOffset ?? 0);
@@ -66,9 +119,18 @@ export function CharacterSheetViewer({ gameDir, height, contentWidth, initialSta
 
   const contentColumnWidth = contentWidth - OUTLINE_WIDTH - 1; // 1 for separator
 
+  const activeStats = useMemo<CharacterStats | null>(() => {
+    if (sheets.length === 0) return null;
+    return parseCharacterFrontMatter(sheets[activeTab].content);
+  }, [sheets, activeTab]);
+
+  // Stats header: name+info line + hp/ac/slots line + separator line = 3, +1 if conditions
+  const statsHeaderHeight = activeStats ? (3 + (activeStats.conditions.length > 0 ? 1 : 0)) : 0;
+
   const lines = useMemo<FormattedLine[]>(() => {
     if (sheets.length === 0) return [{ type: "text", text: "No character sheets found." }];
-    return formatMarkdown(sheets[activeTab].content, contentColumnWidth);
+    const raw = sheets[activeTab].content.replace(/^---\n[\s\S]*?\n---\n*/, "");
+    return formatMarkdown(raw, contentColumnWidth);
   }, [sheets, activeTab, contentColumnWidth]);
 
   // Load known spell filenames for matching: Map<lowercase, originalCase>
@@ -175,11 +237,11 @@ export function CharacterSheetViewer({ gameDir, height, contentWidth, initialSta
     setSpellCursor(0);
   }, [activeTab]);
 
-  // Layout: tab bar (1) + separator (1) + content + footer (1)
+  // Layout: tab bar (1) + separator (1) + stats header + content + footer (1)
   const footerHeight = 1;
   const tabBarHeight = 1;
   const separatorHeight = 1;
-  const contentHeight = Math.max(1, height - tabBarHeight - separatorHeight - footerHeight);
+  const contentHeight = Math.max(1, height - tabBarHeight - separatorHeight - statsHeaderHeight - footerHeight);
 
   const maxOffset = Math.max(0, lines.length - 1);
 
@@ -322,6 +384,8 @@ export function CharacterSheetViewer({ gameDir, height, contentWidth, initialSta
       </Box>
       {/* Separator */}
       <Text color={TAB_INACTIVE}>{"─".repeat(contentWidth)}</Text>
+      {/* Stats header from YAML front matter */}
+      {activeStats && <StatsHeader stats={activeStats} width={contentWidth} />}
       {/* Outline + Content */}
       <Box flexDirection="row" height={contentHeight}>
         {/* Outline sidebar */}

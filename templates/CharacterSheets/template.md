@@ -1,12 +1,21 @@
+---
+name: Character Name
+class: ""
+level: 1
+race: ""
+ac: 10
+hp: { current: 0, max: 0, temp: 0 }
+spell_slots:
+  1: { total: 0, used: 0 }
+conditions: []
+---
+
 # Character Name
 
 ## Basic Info
 
 | | |
 |---|---|
-| **Race** | |
-| **Class** | |
-| **Level** | 1 |
 | **Background** | |
 | **Alignment** | |
 | **Experience Points** | 0 |
@@ -26,7 +35,7 @@
 
 | | |
 |---|---|
-| **Armor Class** | 10 |
+| **Base AC** | 10 |
 | **Initiative** | +0 |
 | **Speed** | 30 ft |
 | **Proficiency Bonus** | +2 |
@@ -35,9 +44,6 @@
 
 | | |
 |---|---|
-| **Maximum** | |
-| **Current** | |
-| **Temporary** | 0 |
 | **Hit Dice** | 1d |
 | **Hit Dice Remaining** | 1 |
 
@@ -102,20 +108,6 @@
 | **Spellcasting Ability** | |
 | **Spell Save DC** | 8 + prof + mod = |
 | **Spell Attack Bonus** | + |
-
-### Spell Slots
-
-| Level | Total | Expended |
-|-------|-------|----------|
-| 1st | | |
-| 2nd | | |
-| 3rd | | |
-| 4th | | |
-| 5th | | |
-| 6th | | |
-| 7th | | |
-| 8th | | |
-| 9th | | |
 
 ### Cantrips Known
 -
@@ -194,9 +186,6 @@
 
 ### Allies & Organizations
 -
-
-### Current Conditions
-- None
 
 ### Ongoing Effects
 - None

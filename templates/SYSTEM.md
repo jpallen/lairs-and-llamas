@@ -206,11 +206,38 @@ Intrinsic character attributes. Update when something changes on the character.
   - inventory changes (items gained/lost/consumed)
   - conditions gained/removed
   - active effects (bless, rage, hex, etc.)
-  - hit dice spent during rests, level ups.
+  - hit dice spent during rests.
 - NEVER store transient situational state here (current location, current activity, battle position, who they're talking to).
-- ALWAYS update stats in their noted place. The character sheet is designed to be edited by you
-- NEVER use 'Current Conditions' for things like HP, level, inventory, spell slots, or anything else that has a dedicated section in the character sheet
-- ONLY use 'Current Conditions' for actual 'conditions', like Poisened, Paralyzed, etc.
+- ALWAYS update stats in their noted place. The character sheet is designed to be edited by you.
+
+**YAML Front Matter (source of truth):**
+Every character sheet starts with YAML front matter between `---` delimiters. The front matter is the **single source of truth** for the following fields:
+
+- `name`, `class`, `level`, `race` — character identity
+- `ac` - current, with any armor or modifiers applied
+- `hp` — current, max, and temp hit points
+- `spell_slots` - only include levels where total > 0. Omit the `spell_slots` key entirely for non-casters.
+- `conditions` - e.g Poisoned, Blinded, Paralyzed, etc. Use an empty array `[]` when none apply.
+- ALWAYS When
+
+Schema:
+
+```yaml
+---
+name: Character Name
+class: Fighter
+level: 3
+race: Human
+ac: 18
+hp: { current: 25, max: 30, temp: 0 }
+spell_slots:
+  1: { total: 3, used: 1 }
+  2: { total: 2, used: 0 }
+conditions: []
+---
+```
+
+- ALWAYS update these values as soon as they change, since they are reflected in the UI shown to the user
 
 **Journal (`JOURNAL.md`):**
 Running log of campaign events. Primary record for resuming sessions.
