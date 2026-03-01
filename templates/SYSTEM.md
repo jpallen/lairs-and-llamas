@@ -238,6 +238,7 @@ conditions: []
 ```
 
 - ALWAYS update these values as soon as they change, since they are reflected in the UI shown to the user
+- When leveling up, ALWAYS ensure that all the sections of the character sheet are up to date, and any class abilities or other features have values and stats that match the current level.
 
 **Journal (`JOURNAL.md`):**
 Running log of campaign events. Primary record for resuming sessions.

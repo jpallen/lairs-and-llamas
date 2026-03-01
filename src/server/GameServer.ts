@@ -247,13 +247,23 @@ export class GameServer {
     });
     this.queryRef = gen;
 
-    this.processMessages(gen, isNotesReminder).catch((err) => {
-      debug("Claude session error:", err?.message ?? err, err?.stack);
-      this.isProcessing = false;
-      this.processingLock = false;
-      this.broadcast({ type: "processingState", isProcessing: false });
-      this.broadcast({ type: "error", message: err?.message ?? "Unknown error" });
-    });
+    this.processMessages(gen)
+      .catch((err) => {
+        debug("Claude session error:", err?.message ?? err, err?.stack);
+        this.broadcast({ type: "error", message: err?.message ?? "Unknown error" });
+      })
+      .finally(() => {
+        this.isProcessing = false;
+        this.processingLock = false;
+        this.currentToolCall = null;
+        this.broadcast({ type: "processingState", isProcessing: false });
+        this.broadcast({ type: "toolCallUpdate", toolCall: null });
+
+        // After a normal DM turn, trigger silent notes update
+        if (!isNotesReminder) {
+          this.sendMessage("<update-notes-reminder/>");
+        }
+      });
   }
 
   private async canUseTool(
@@ -365,7 +375,6 @@ export class GameServer {
 
   private async processMessages(
     gen: ReturnType<typeof query>,
-    isNotesReminder = false,
   ): Promise<void> {
     let currentAssistantId: string | null = null;
     let currentThinkingId: string | null = null;
@@ -547,22 +556,11 @@ export class GameServer {
         if ("errors" in msg) debug("Result errors:", msg.errors);
         if ("result" in msg) debug("Result text:", (msg as any).result);
 
-        this.isProcessing = false;
-        this.processingLock = false;
-        this.currentToolCall = null;
-        this.broadcast({ type: "processingState", isProcessing: false });
-        this.broadcast({ type: "toolCallUpdate", toolCall: null });
-
         if (currentAssistantId) {
           const m = this.messages.find((m) => m.id === currentAssistantId);
           if (m) m.isStreaming = false;
           this.broadcast({ type: "messageUpdate", id: currentAssistantId, patch: { isStreaming: false } });
           currentAssistantId = null;
-        }
-
-        // After a normal DM turn, trigger silent notes update
-        if (!isNotesReminder) {
-          this.sendMessage("<update-notes-reminder/>");
         }
       }
     }
