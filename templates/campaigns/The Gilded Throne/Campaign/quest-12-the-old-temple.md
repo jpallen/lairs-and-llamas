@@ -190,6 +190,8 @@ A long, narrow chamber — more of a corridor — with the far end lost in absol
 
 **On complete failure (all party members turn back):** The corridor resets. The party may try again after a short rest. On the second attempt, the DCs drop to 11 — the trial acknowledges their persistence.
 
+**Short rest opportunity:** After completing all three trials, the antechamber (T3) has been consecrated by the party's passage — the air is warm, the stone glows faintly with divine light, and fiends cannot enter. The party can take a short rest here safely before descending to the lower crypt. This is the last safe rest before the bone devil encounter.
+
 Connected to:
 
 - T3 antechamber: Back to the central chamber.
@@ -249,14 +251,9 @@ Beyond the door is a large, octagonal chamber with a high domed ceiling. The wal
 | 1 Bone Devil [BONE_DEVIL] | 9 | 142 | 19 | 5,000 |
 | 2 Bearded Devils [BEARDED_DEVIL1-2] | 3 | 52 each | 13 | 700 each |
 
-Adjusted XP: 6,400 x 2.0 (three creatures) = 12,800. **Deadly.**
+Adjusted XP: 6,400 x 2.0 (three creatures) = 12,800. **Deadly** (threshold 8,400). The bone devil has no lair actions — the divine ward on this chamber weakens its connection to the infernal plane, preventing it from drawing on the environment.
 
-**Lair actions:** On initiative count 20 (losing ties), the bone devil can use one of the following lair actions:
-
-- **Spectral Chains:** Ghostly chains erupt from the walls, targeting one creature. The target must succeed on a DC 14 Dexterity saving throw or be restrained until the end of their next turn.
-- **Necrotic Cold Aura:** The temperature plummets. Every creature within 10 feet of the sarcophagus takes 2d6 cold damage (no save). The bone devil is immune.
-
-**Tactics:** The bone devil uses its sting at range and relies on its bearded devil flankers to engage melee fighters. It uses Spectral Chains against spellcasters and the Necrotic Cold Aura when two or more party members are near the sarcophagus. The bearded devils fight aggressively, using their glaives' Infernal Wound ability to drain HP over time.
+**Tactics:** The bone devil uses its sting at range and relies on its bearded devil flankers to engage melee fighters. It targets spellcasters with its tail sting while the bearded devils fight aggressively, using their glaives' Infernal Wound ability to drain HP over time.
 
 **When the bone devil reaches half HP:** It offers a deal — it will leave and take its devils with it if the party swears not to take the Blade. This is a genuine offer (it would rather retreat than die), but accepting means losing the quest reward. A DC 14 Insight check confirms the offer is sincere.
 

@@ -115,13 +115,12 @@ When the surviving thugs flee, they run east through Chandler's Lane — a narro
 
 > The thugs bolt down the alley, knocking over a rack of tallow candles and shoving a soap-maker's cart into your path. Chandler's Lane is narrow and cluttered — barrels, crates, and washing lines overhead. Ahead, the lane opens into Coppersmith Row, a wider street of metalworkers' shops. You can hear the thugs' boots pounding on the cobblestones.
 
-**Chase mechanics:** Run this as a skill challenge. The fleeing thugs need 3 successes to reach the bandit captain with enough lead to set up an ambush. The party needs 3 successes to catch them before they reach Coppersmith Row. Each round, one party member can attempt a check:
+**Chase mechanics:** Run this as a skill challenge. The fleeing thugs need 3 successes to reach the bandit captain with enough lead to set up an ambush. The party needs 3 successes to catch them before they reach Coppersmith Row. Each round, one party member can attempt a check. The obstacles are specific to the chaos of the disrupted funeral:
 
-- **Athletics (DC 12):** Sprint through the alley, hurdling obstacles.
-- **Acrobatics (DC 13):** Dodge through the narrow lane, ducking under washing lines and vaulting crates.
-- **Perception (DC 13):** Spot a shortcut — a gap between buildings that cuts ahead of the thugs.
-- **Intimidation (DC 12):** Shout at bystanders to clear the way. Works once.
-- **Any ranged attack (AC 14):** A hit trips a fleeing thug (counts as one party success). Non-lethal damage is possible.
+- **Obstacle — the panicking mourners:** DC 13 Persuasion to part the crowd ("Move! City watch business!") OR DC 14 Athletics to shove through. Shoving damages the party's reputation with bystanders — witnesses remember, and word reaches the guild halls. (Future Persuasion checks with Ashenmere commoners are at disadvantage for 1 week.)
+- **Obstacle — the toppled bier:** The funeral bier has fallen, blocking the lane with the casket and scattered flowers. DC 12 Acrobatics to vault it, or DC 10 Athletics to shove it aside — but shoving desecrates the funeral, and witnesses remember. Brother Aldous hears of it, and the party must explain themselves at the temple.
+- **Obstacle — a child in the path:** A child has stumbled into the lane ahead of the fleeing thugs. DC 12 Athletics to grab the child and pull them clear. On failure, the thugs use the child as a momentary shield — ranged attacks have disadvantage for 1 round.
+- **Any ranged attack (AC 13):** A hit trips a fleeing thug (counts as one party success). Non-lethal damage is possible.
 
 **Creative solutions:** If a player suggests cutting through a building, using magic to block the alley, or anything inventive — adjudicate it as a DC 12-14 check of the appropriate ability.
 

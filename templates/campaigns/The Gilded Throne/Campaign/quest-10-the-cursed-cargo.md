@@ -216,6 +216,14 @@ Brother Aldous [ALDOUS] is an aging cleric of Tyr — tall, gaunt, with close-cr
 - **DC 13 Religion (Aldous assists, granting advantage):** Rakshasas are master manipulators. They can cast *Detect Thoughts* at will, are immune to most divination, and can use *Disguise Self* at will. In their true form, their hands are reversed — palms where the backs should be.
 - **DC 15 Insight:** Aldous is holding something back. If pressed gently (DC 13 Persuasion), he admits: "He told me he has been in Ashenmere for eleven years. Eleven years wearing a dead man's face. Everything the council has done in that time — every vote, every tax, every law — was shaped by a fiend." The weight of this visibly shakes him.
 
+**Failsafe — doppelganger warning:** If the party has not yet encountered doppelgangers (skipped Q3 and Q5), Aldous warns them directly once freed:
+
+> "There is something else you must know. Sorn employs shapechangers — creatures that wear the faces of the people you trust. I saw one on this very ship, wearing the captain's face before they killed him. Test your allies. Trust no one whose behaviour has changed."
+
+This ensures even a minimal-path party knows about doppelgangers before Q13.
+
+**Failsafe — backup blessed weapon:** Among the cursed cargo, one weapon stands apart — a silver-chased short sword whose infernal bindings are weaker than the rest, as though the original consecration partially resisted the corruption. Brother Aldous can purify it on the spot with 1 hour of prayer (no spell slot required — the weapon is already fighting the curse). The purified weapon functions as a +1 short sword that deals an additional 1d4 radiant damage to fiends. This provides a backup blessed weapon even if Q12 and Q14 are both skipped.
+
 **Aldous's blessing:** Once safely off the ship, Aldous kneels and prays. He places his hand on the forehead of each willing party member.
 
 > "Tyr's eye is upon you. You have shown courage where others turned away. Carry his protection into the dark days ahead."
@@ -353,6 +361,7 @@ npcs:
 | Cargo manifest (two more shipments) | Captain's cabin sea chest (DC 16 Thieves' Tools) | Evidence; signed with serpent sigil |
 | 500 gp cursed weapons (total value) | Cargo hold | Can be purified one per long rest with 5th-level spell |
 | Kaspar as harbour blockade ally | Kaspar (recruited) | Side opportunity; connects to Q18 |
+| +1 short sword (+1d4 radiant vs fiends) | Cursed cargo (Aldous purifies) | Failsafe blessed weapon; 1 hour prayer |
 | Rakshasa revelation | Brother Aldous | Major plot advancement |
 
 ## Quest Connections

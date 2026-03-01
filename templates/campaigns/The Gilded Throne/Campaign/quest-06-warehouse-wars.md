@@ -307,7 +307,7 @@ If the spy Delvin is captured alive, he can be questioned. He is more composed t
 - **DC 16 Intimidation:** Delvin reveals that the hidden armoury was only one of several. "There are caches all over the city. The docks, the Tanners' Quarter, the Old Quarter. Enough weapons to arm two hundred men." He does not know the other locations.
 - **DC 13 Insight:** Delvin is genuinely afraid — not of the party, but of his employer. He knows that captured agents do not survive long in Ashenmere's cells (referencing the spy Lira from Q1, if the party turned her over to the watch).
 
-If Delvin is turned over to the city watch, he is found dead in his cell within 48 hours — a "seizure," according to the watch captain. If released, he flees the city.
+If Delvin is turned over to the city watch, his cell is found empty within 48 hours — the lock picked from outside, a city watch tabard missing from the guardroom. A corrupt guard on Sorn's payroll broke him out. Delvin reappears briefly in Q13 as one of the suspects the party can rule out — he has been spotted fleeing the city along the north road. If released, he flees the city immediately.
 
 ### The Dock Worker's Connection
 

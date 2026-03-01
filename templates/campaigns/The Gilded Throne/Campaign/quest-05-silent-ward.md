@@ -20,11 +20,11 @@ The ward has been terrorised for nearly three weeks. Residents are alive but wil
 
 **Knocking on doors:** No one answers at first. A DC 12 Persuasion check convinces someone to speak through a closed door. A DC 14 Persuasion check gets a door opened — barely, with a chain across it.
 
-**If a door is opened:** An exhausted woman named Maren [MAREN] peers through the gap. Her eyes are bloodshot, her face gaunt from lack of sleep.
+**If a door is opened:** An exhausted woman named Elspeth [ELSPETH] peers through the gap. Her eyes are bloodshot, her face gaunt from lack of sleep.
 
 > "Go away. Please. She sees through our eyes when we sleep. If she knows you're here — if she knows we talked to anyone —" She starts to close the door, then stops. "Don't sleep here. Whatever you do, don't fall asleep in this ward."
 
-**DC 12 Insight:** Maren is genuinely terrified, not delusional. She believes absolutely that something enters her dreams.
+**DC 12 Insight:** Elspeth is genuinely terrified, not delusional. She believes absolutely that something enters her dreams.
 
 **DC 13 Medicine:** The residents visible through windows show signs of severe sleep deprivation — sunken eyes, trembling hands, erratic behaviour. This has been going on for weeks.
 
@@ -39,8 +39,8 @@ Connected to:
 
 ```yaml
 npcs:
-  - id: MAREN
-    name: Maren Hollis
+  - id: ELSPETH
+    name: Elspeth Hollis
     type: Human Commoner
     description: A gaunt woman in her thirties with bloodshot eyes and unwashed hair. She was a seamstress before the nightmares started. She hasn't slept more than an hour at a time in two weeks and is barely coherent. She clutches a kitchen knife at all times.
 ```

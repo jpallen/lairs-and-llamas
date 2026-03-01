@@ -338,7 +338,7 @@ Cassius Vane is the opponent here. He is slick, well-dressed, and unnervingly go
 1. The judges are checked by Penna Quill (the riddle master, who knows *Detect Magic*). She confirms enchantment magic.
 2. Cassius is searched. The charm amulet is confiscated.
 3. Cassius panics. He claims he found the amulet and didn't know what it did. A DC 14 Insight check reveals he is lying — he knew exactly what he was doing but won't say who gave it to him.
-4. **DC 16 Intimidation or DC 18 Persuasion:** Cassius admits a "patron" gave him the amulet and told him to win the negotiation contest at all costs. He never met the patron face-to-face — the amulet was delivered to his room at the Silver Stag inn with a note that said only: *"Win, and greater opportunities will follow."*
+4. **DC 16 Intimidation or DC 18 Persuasion:** Cassius admits a "patron" gave him the amulet and told him to win the negotiation contest at all costs. He never met the patron face-to-face — the amulet was delivered to his room at the Silver Stag inn by a raven carrying a small leather pouch. Inside was the amulet and a note sealed in black wax with no sigil: *"Win, and greater opportunities will follow."* The use of an animal messenger suggests the patron has access to magic — another tool in Sorn's toolkit alongside dead drops and intermediaries.
 5. Cassius is disqualified. The party wins the negotiation event by default (or by merit, if they were already ahead).
 
 **The charm amulet:** This is a critical piece of evidence. A small silver disc on a chain, engraved with fine runes.

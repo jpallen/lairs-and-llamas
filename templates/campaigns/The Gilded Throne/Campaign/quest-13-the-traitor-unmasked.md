@@ -27,7 +27,7 @@ Eight resistance members are present, seated or standing around the table. They 
 3. **Rook** [ROOK] — A street-smart halfling who runs messages between resistance cells. Brash, irreverent, fiercely loyal. He was at the safehouse during the raid and barely escaped through the sewers — he has a crossbow bolt wound in his shoulder to prove it.
 4. **Callan Wight** [CALLAN] — A former sailor and the resistance's quartermaster, responsible for weapons and supplies. He has been with the resistance since the beginning. He is the greater doppelganger.
 
-Callan Wight was replaced by the greater doppelganger three weeks ago. The real Callan is dead — his body is hidden in a collapsed section of the old sewer tunnels beneath the Tanners' Quarter. The doppelganger has been reading thoughts to maintain Callan's mannerisms perfectly. It passed along the safehouse location, the watch schedule, and the weapons cache to one of Sorn's handlers via a dead drop in the fish market.
+Callan Wight was replaced by the greater doppelganger three weeks ago. The real Callan is dead — his body is hidden in a collapsed section of the old sewer tunnels beneath the Tanners' Quarter. The doppelganger has been reading thoughts to maintain Callan's mannerisms perfectly. It passed along the safehouse location, the watch schedule, and the weapons cache using a system of coded chalk marks on a specific wall in the Merchants' Quarter — different symbols convey different messages (a circle means "intelligence ready for pickup," a triangle means "target confirmed," a cross means "abort"). Sorn's handler checks the wall daily and leaves coded responses.
 
 > Maren addresses the room: "No one leaves this cellar until we figure out how this happened. I've trusted every one of you with my life. Now I need you to prove I wasn't wrong."
 
@@ -40,7 +40,7 @@ Callan Wight was replaced by the greater doppelganger three weeks ago. The real 
 Connected to:
 
 - A2: The raided safehouse on Sable Street, accessible through the streets or the sewer tunnels.
-- A3: The fish market, where the dead drop is located.
+- A3: The chalk wall in the Merchants' Quarter, where the doppelganger leaves coded messages.
 - A5: This cellar is also where the assassination attempt takes place.
 
 ```yaml
@@ -127,53 +127,60 @@ A narrow three-storey building wedged between a cobbler's shop and a boarded-up 
 
 - **DC 12 Investigation:** The attackers entered through the front and back simultaneously — this was coordinated, not a chance discovery. Boot prints suggest at least eight city watch plus two others in lighter footwear (Sorn's enforcers).
 - **DC 14 Investigation:** The weapons cache behind the hearth was opened cleanly — no prying, no guesswork. Whoever directed the raid knew the exact location of the hidden panel and how to open it. Only resistance members knew this.
-- **DC 15 Perception:** A faint trail of damp footprints leads from the back door into the alley, then toward the fish market to the east. These are fresher than the raid — someone came back after the watch left. The footprints are from heavy boots, consistent with Callan's size.
+- **DC 15 Perception:** A faint trail of damp footprints leads from the back door into the alley, then toward the Merchants' Quarter to the east. These are fresher than the raid — someone came back after the watch left. The footprints are from heavy boots, consistent with Callan's size.
 - **DC 13 Investigation:** Near the back door, a torn scrap of parchment is caught under a broken chair leg. It reads, in a hasty hand: "Cache behind hearth, watch change at fourth bell, three inside overnight." This is the intelligence that was passed to Sorn's people. The handwriting does not match any of the suspects — the doppelganger wrote it in its own hand, not Callan's.
 - **DC 16 Arcana:** A faint residual aura of divination magic lingers near the hearth — consistent with a Read Thoughts effect used within the last few days. This is from the doppelganger reading the real Callan's memories of the safehouse layout before killing him.
 
-**If a suspect accompanies the party:** Watch their reaction to the scene. Tomas is grim and methodical — he checks sight lines and catalogues what's missing. Delia is visibly shaken and nearly sick at the bloodstains. Rook is angry and kicks furniture. "Callan" expresses appropriate grief but subtly steers the party away from the back door and the fish market direction. A DC 14 Insight check notices Callan's redirection.
+**If a suspect accompanies the party:** Watch their reaction to the scene. Tomas is grim and methodical — he checks sight lines and catalogues what's missing. Delia is visibly shaken and nearly sick at the bloodstains. Rook is angry and kicks furniture. "Callan" expresses appropriate grief but subtly steers the party away from the back door and the Merchants' Quarter direction. A DC 14 Insight check notices Callan's redirection.
 
 **If the party asks Callan about the weapons cache:** He explains the mechanism perfectly — because the doppelganger read the real Callan's mind before killing him. But a DC 15 Insight check notices he describes the mechanism slightly differently from how resistance members who helped build it would describe it — he uses the correct details but in the wrong order, as if recalling a memory rather than a habit.
 
 Connected to:
 
 - A1: Back to the Broken Compass.
-- A3: The fish market, following the damp footprints.
+- A3: The chalk wall in the Merchants' Quarter, following the damp footprints.
 - Sewer access via the back alley (leads to A4).
 
-## A3. The Fish Market Dead Drop
+## A3. The Chalk Wall (Merchants' Quarter)
 
-The Ashenmere fish market is a sprawling open-air square near the harbour, crowded with stalls, ice carts, and shouting vendors. The dead drop is inside a hollowed-out brick in the low wall separating the market from the canal towpath. The doppelganger has been passing written intelligence here every three days, collected by one of Sorn's handlers.
+A stretch of wall along the back of a cooper's workshop in the Merchants' Quarter, facing a narrow alley that connects to the main thoroughfare. The doppelganger has been leaving coded chalk marks here every few days — circles, triangles, crosses, and occasionally short sequences of dots and lines that convey more complex messages. Sorn's handler checks the wall daily and leaves coded responses in a different colour of chalk.
 
-> The fish market heaves with noise and stink — vendors hawking the morning catch, carts of ice rattling over cobblestones, gulls wheeling overhead. The canal towpath runs along the south edge, separated from the market by a waist-high stone wall green with river moss.
+> The alley is unremarkable — barrel staves stacked against one wall, a puddle of grey water, the smell of sawdust and oak. But the far wall is covered in faint chalk marks, some fresh, some half-washed by rain. Most look like idle graffiti or children's scribbles. Some are not.
 
-**Finding the dead drop:**
+**Finding the chalk wall:**
 
-- **If the party followed the footprints from A2:** The trail leads directly to the low canal wall and stops at a section near a fishmonger's stall. A DC 12 Investigation check finds the hollowed brick.
-- **If the party is searching without the footprints:** A DC 16 Investigation check, or a DC 14 Perception check if they know to look along the canal wall (from Vara's coded message — see Quest Connections).
-- **If the party has Vara's coded message from Q9:** The message names three of Sorn's known dead drop locations. This one is listed. No check needed — they find it immediately.
+- **If the party followed the footprints from A2:** The trail leads toward the Merchants' Quarter. A DC 12 Survival check tracks the route to this alley. A DC 13 Investigation check notices the chalk marks are not random — they follow a pattern, with fresh marks in a consistent position.
+- **If the party is searching without the footprints:** A DC 16 Investigation check while canvassing the Merchants' Quarter, or a DC 14 Perception check if they know to look for Sorn's communication methods (from Vara's coded message — see Quest Connections).
+- **If the party has Vara's coded message from Q9:** The message names three of Sorn's known communication methods. Coded chalk marks are listed. No check needed — they find the wall after a few hours of searching.
 
-**Inside the dead drop:**
+**Deciphering the chalk marks:**
 
-A small oilskin pouch containing:
+- **DC 14 Investigation:** The marks form a cipher. A circle means "intelligence ready for pickup." A triangle means "target confirmed." A cross means "abort." Dot sequences encode names and locations.
+- **DC 16 Intelligence (or DC 13 with Thieves' Cant or similar):** The most recent sequence translates to: "Safehouse cleared. Watching M. Crown move ready." ("M." is Maren. "Crown move" refers to the planned assassination.)
+- **Scraping away older marks (DC 12 Investigation):** Beneath the current layer, partially erased marks show weeks of communication — the doppelganger has been using this wall since shortly after replacing Callan.
 
-- A folded note in the same handwriting as the scrap found at the safehouse: "Safehouse cleared. Watching M. closely. Signal when ready for the crown move." ("M." is Maren. "The crown move" refers to the planned assassination.)
-- A silver coin stamped with Sorn's personal sigil — a gate flanked by chains. This is the doppelganger's payment token, exchanged for gold at a location the doppelganger doesn't know.
+**Hidden cache:** Behind a loose brick near the base of the wall (DC 14 Investigation to find):
+
+- A small oilskin pouch containing a silver coin stamped with Sorn's personal sigil — a gate flanked by chains. This is the doppelganger's payment token, exchanged for gold at a location the doppelganger doesn't know.
 - A small vial of *Oil of Taggit* (ingested poison, DC 13 Constitution save or fall unconscious for 24 hours). This was intended for Maren's wine.
+- A scrap of parchment with the cipher key — a simple substitution chart matching chalk symbols to letters and common phrases.
 
-**Watching the dead drop:** If the party stakes out the dead drop instead of emptying it, a hooded figure [HANDLER1] arrives at dusk to check it. This is one of Sorn's low-level handlers — a human thug who knows nothing except the dead drop location and the name of the tavern where he delivers the messages (the Gilt Lily, a high-end establishment in the Noble Quarter). If confronted, he fights briefly and then flees. If caught and interrogated (DC 13 Intimidation), he reveals he delivers to "a man with a silver ring at the Gilt Lily" — he doesn't know the man's name or role.
+**Watching the wall:** If the party stakes out the alley instead of disturbing it, a hooded figure [HANDLER1] arrives at dusk to check the marks and leave a response in red chalk. This is one of Sorn's low-level handlers — a human thug who knows nothing except the chalk wall location and the name of the tavern where he reports (the Gilt Lily, a high-end establishment in the Noble Quarter). If confronted, he fights briefly and then flees. If caught and interrogated (DC 13 Intimidation), he reveals he reports to "a man with a silver ring at the Gilt Lily" — he doesn't know the man's name or role.
+
+**The cipher key:** If the party recovers the cipher key from the hidden cache, they can decode all of the doppelganger's previous communications. This reveals the full scope of the intelligence leak — which safehouses were compromised, which resistance members were being watched, and the timeline of the "crown move" assassination plan.
 
 Connected to:
 
 - A1: Back to the Broken Compass.
 - A2: Back to the raided safehouse.
+- A4: The sewers near the real Callan's body — the doppelganger's route from the Broken Compass passes through the sewer tunnels, and the cipher key's hiding spot is along the same path.
 
 ```yaml
 npcs:
   - id: HANDLER1
     name: Sorn's Handler
     type: Thug
-    description: A heavyset man in a hooded cloak with a docker's cap pulled low. He moves with the practised casualness of someone who has done this many times. He carries a mace and a shortsword. He knows nothing of value beyond the dead drop routine and the Gilt Lily delivery point.
+    description: A heavyset man in a hooded cloak with a docker's cap pulled low. He moves with the practised casualness of someone who has done this many times. He carries a mace and a shortsword. He knows nothing of value beyond the chalk wall location and the Gilt Lily delivery point.
 ```
 
 ## A4. The Sewers (Callan's Body)
@@ -263,15 +270,15 @@ Suggested approaches:
 
 - **False safehouse location:** Tell each suspect a different "new safehouse" address. Watch each location to see which one gets raided or scouted. This takes 1-2 days but is conclusive.
 - **False supply run:** Tell Callan (or whoever they suspect) about a fictional weapons delivery at a specific time and place. If Sorn's enforcers show up, the traitor is confirmed. This can be resolved in a single evening.
-- **Marked information:** Give each suspect a slightly different version of a "resistance plan" with unique details. When the information is passed through the dead drop (if the party is watching it), the version identifies the traitor.
+- **Marked information:** Give each suspect a slightly different version of a "resistance plan" with unique details. When the information appears as chalk marks on the wall (if the party is watching it), the version identifies the traitor.
 
-**If the party watches the dead drop after feeding false info to Callan:** Within 6 hours, the doppelganger slips away from wherever it is, travels to the fish market by a circuitous route, and deposits a note containing the false information. A party member watching the dead drop (DC 12 Stealth to remain hidden, contested by the doppelganger's +4 Perception) catches it in the act.
+**If the party watches the chalk wall after feeding false info to Callan:** Within 6 hours, the doppelganger slips away from wherever it is, travels to the Merchants' Quarter by a circuitous route, and marks the false information on the wall in coded chalk. A party member watching the alley (DC 12 Stealth to remain hidden, contested by the doppelganger's +4 Perception) catches it in the act.
 
 **If the doppelganger realises it's being tested:** It accelerates its plan. Rather than waiting for the optimal moment, it moves to assassinate Maren immediately — see A6.
 
 Connected to:
 
-- A3: The fish market dead drop.
+- A3: The chalk wall in the Merchants' Quarter.
 - A6: The assassination attempt.
 
 ## A6. The Assassination Attempt
@@ -281,7 +288,7 @@ The doppelganger's secondary mission — after intelligence gathering — is to 
 **Trigger conditions (any one):**
 
 - The party directly accuses Callan with evidence.
-- The false information trap catches the doppelganger at the dead drop.
+- The false information trap catches the doppelganger at the chalk wall.
 - The party finds the real Callan's body in the sewers.
 - 48 hours pass without resolution (Sorn signals the assassination).
 
@@ -449,7 +456,7 @@ Connected to:
 ## Quest Connections
 
 - **From Quest 3/Quest 5:** Previous doppelganger encounters give the party specific tells to look for — DC on Perception checks to notice shapechanger behaviour drops from 14 to 12.
-- **From Quest 9:** Vara's coded message names Sorn's known dead drop locations, including the fish market. The party can find the dead drop without a check.
+- **From Quest 9:** Vara's coded message names Sorn's known communication methods, including coded chalk marks. The party can find the chalk wall without a check.
 - **To Quest 17:** The doppelganger's notes reference ward stones at the Citadel boundary markers — their recharge schedule and the acolytes who maintain them.
 - **To Quest 18:** The Citadel layout, guard rotations, and ward placements revealed by the traitor's intelligence make the assault significantly easier. If Maren survives, she personally coordinates the resistance's support during the assault.
 - **To Quest 20:** The doppelganger's journal reveals that the portal anchors are weakest at the cardinal points, with the northern anchor especially unstable. This is the key to collapsing Sorn's summoning framework.

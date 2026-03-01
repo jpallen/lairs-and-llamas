@@ -186,8 +186,9 @@ The central market of Ashenmere is a broad, open square lined with timber-framed
 
 - **1 Gladiator** [GLADIATOR1] (CR 5) — A professional arena fighter recruited from outside Ashenmere. He fights for coin, not loyalty. He wears studded leather armour over a bare chest and wields a spear and shield. He is disciplined and dangerous — he fights to kill, targeting the strongest opponent first.
 - **3 Berserkers** [BERSERKER1-3] (CR 2 each) — Frenzied fighters in mismatched armour. They attack recklessly (advantage on attacks, attacks against them have advantage). They have high damage output (1d12+3 greataxe) but low AC (13) and no tactical awareness. Glass cannons.
+- **12 Conscripted City Watch** [CONSCRIPT1-12] (Guard stat block, CR 1/8 each) — Reluctant guards pressed into service by Captain Roth's orders. They form a loose cordon around the market square, blocking escape routes and half-heartedly engaging anyone who tries to break through. They fight reluctantly — any guard reduced below half HP (6 HP or fewer) throws down their weapon and surrenders. A DC 13 Intimidation or Persuasion check (usable as an action) causes 1d4 guards to break ranks and flee each round. The encounter becomes about crowd control and breaking morale rather than pure damage — the guards are individually weak and break easily, but their numbers create the feel of a genuine mass battle.
 
-**Effective encounter:** Gladiator (1,800 XP) + 3 berserkers (450 XP each) = 3,150 base XP x2 (4 creatures) = 6,300 adjusted XP. **Hard-Deadly** for a party of 4 at level 7. The berserkers' low AC and reckless fighting style mitigate this — they drop quickly under focused fire.
+**Effective encounter:** Gladiator (1,800 XP) + 3 berserkers (450 XP each) + 12 guards (25 XP each) = 3,450 base XP. The guards' low CR and easy surrender conditions keep the effective difficulty at **Hard-Deadly** for a party of 4 at level 7. The guards primarily serve as crowd-control obstacles rather than lethal threats — the real danger remains the gladiator and berserkers.
 
 **Civilians:** 6 civilians are hiding behind the central fountain. If the party does not engage within 2 rounds, one berserker breaks off to attack them. The civilians are commoners with 4 HP each. Protecting them is a secondary objective — saving at least 4 of 6 earns the party a reputation bonus in the aftermath.
 
@@ -216,6 +217,9 @@ npcs:
   - id: BERSERKER3
     type: Berserker
     description: A lean, tattooed human man with wild hair and a notched greataxe. He laughs as he fights, swinging at anything that moves — stalls, barrels, people. He is the most likely to break off and attack civilians.
+  - id: CONSCRIPT1-12
+    type: Guard (x12)
+    description: Conscripted city watch guards in standard-issue tabards, forming a loose cordon around the market square. Most are visibly uncomfortable — some are pale, others avoid eye contact with civilians. They carry spears and shields but fight without conviction. Any guard reduced below half HP surrenders immediately. They can be broken with a DC 13 Intimidation or Persuasion check (1d4 flee per success). These are ordinary citizens in uniform, not Sorn's fanatics.
   - id: CIVILIAN1
     type: Commoner
     description: A middle-aged woman clutching a child, hiding behind the fountain.
@@ -314,6 +318,8 @@ This is the quest's pivotal moment. As the party moves through the streets after
 > "A fiend. Ruling our city." She takes a long breath. "Then we kill a fiend. What do we need?"
 
 This opens the door to Q12 (The Old Temple — finding the Blade of Tyr's Witness), Q13 (The Traitor Unmasked — rooting out Sorn's spy in the resistance), and Q14 (The Last Sermon — Brother Aldous's public denouncement and consecration of a backup weapon).
+
+**Failsafe — ward stone intelligence:** If the party has not found any ward stone intelligence (skipped Q7 and Q12), add the following: During the chaos, a dying Sorn loyalist drops a partially burned map showing three locations in the city marked with ward stone symbols — a sewer entrance near the harbour, the bell tower of the Grand Theatre, and a mark in the Old Quarter. The map is charred and incomplete, but DC 12 Investigation confirms the symbols match Infernal warding glyphs. This ensures the party has Q17 intel even on the minimum path.
 
 Connected to:
 

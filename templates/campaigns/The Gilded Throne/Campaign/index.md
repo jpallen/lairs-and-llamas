@@ -123,6 +123,7 @@ Sorn is elected to the council. New laws restrict movement. Dissidents begin van
 | Q4 | Guild Trials | Discovery | Social/Skill challenge | 4 |
 | Q5 | The Silent Ward | Discovery | Horror investigation | 4 |
 | Q6 | Warehouse Wars | Discovery | Faction combat | 5 |
+| Q6b | [The River Ambush](quest-06b-the-river-ambush.md) | Discovery | Wilderness ambush | 5 |
 | Q7 | The Disappeared | Story | Stealth dungeon crawl | 5 |
 | Q8 | Masquerade at Thornwall Manor | Discovery | Heist/Infiltration | 6 |
 | Q9 | The Poisoned Quill | Reactive | Noir investigation | 6 |
@@ -132,6 +133,8 @@ Sorn is elected to the council. New laws restrict movement. Dissidents begin van
 **Q5: The Silent Ward.** An entire neighbourhood has gone quiet. A night hag torments residents in their dreams, extracting secrets she sells to Sorn. The party enters the Ethereal Border to confront her. She can be bargained with — revealing Sorn has "a face that isn't his own" — or killed, freeing the ward permanently. *If skipped: no shapechanger intelligence, harder doppelganger encounters later.*
 
 **Q6: Warehouse Wars.** Sorn's trade regulations are squeezing the Dockmasters. Brokka asks the party to protect a contraband shipment. The Merchants' Guild sends enforcers. A morally grey faction conflict that forces the party to pick a side — or broker peace. Consequences ripple through the rest of the campaign.
+
+**Q6b: The River Ambush.** Brokka receives word that a Sorn supply barge is travelling upriver with alchemical cargo bound for the Citadel. The party intercepts it on the river road outside the city walls — a wilderness ambush complicated by a troll stalking the riverbank. The first quest set outside the city, and the first where the party is the aggressor. Rewards include trade goods, alchemical supplies, and a sealed manifest naming a Citadel contact. *If skipped: no manifest evidence, fewer alchemical supplies available later.*
 
 **Q7: The Disappeared.** Maren's resistance contacts are vanishing. She accompanies the party through the undercity to find a secret prison run by Sorn's loyalists. Stealth-focused dungeon crawl. Rescued prisoners reveal Sorn speaking Infernal and mutter about "the tiger that walks like a man."
 
@@ -171,7 +174,7 @@ Sorn retreats to the Council Citadel. The party must rally allies, break through
 | Q16 | Sorn's Retribution | Reactive | Defensive siege | 9 |
 | Q17 | Sabotage | Story | Triple mini-encounter | 9 |
 | Q18 | The Siege of the Citadel | Story | Dungeon assault | 10 |
-| Q19 | The Devil's Vanguard | Story | Mini-boss combat | 10 |
+| Q19 | ~~The Devil's Vanguard~~ *(Incorporated into Q18, section A6)* | — | — | — |
 | Q20 | The Ritual Chamber | Story | Combat/Puzzle hybrid | 10 |
 | Q21 | The Pretender's Court | Story | Roleplay/Psychological | 11 |
 | Q22 | The True Face | Story | Multi-phase boss battle | 11 |
@@ -184,7 +187,7 @@ Sorn retreats to the Council Citadel. The party must rally allies, break through
 
 **Q18: The Siege of the Citadel.** The resistance assaults the Citadel. The party leads a strike team inside via one of three routes: front gate (hard combat, ally support), servant's passage (stealth), or sewers (environmental hazards). Routes converge at a cambion mid-boss.
 
-**Q19: The Devil's Vanguard.** A horned devil tears through the Citadel walls, rampaging through the courtyard. A straightforward mini-boss fight to save the allied forces.
+**Q19: The Devil's Vanguard.** *(Incorporated into Q18 as section A6: "The Devil's Breach." The horned devil encounter now occurs as the climax of the Citadel assault.)*
 
 **Q20: The Ritual Chamber.** The summoning portal blazes below the throne room. Four anchor points sustain the ritual, each requiring a different method to disrupt (strength, arcana, divine magic, and brute destruction). An erinyes commands the defence.
 
@@ -256,3 +259,14 @@ Several items found in early quests have optional but significant effects on lat
 - **Stone of Far Speech** (Q14) — Feed Sorn false information in Act IV.
 - **Doppelganger's Journal** (Q13) — Reveals ritual anchor weak points (Q20).
 - **Portal Reversal Notes** (Q20) — Failsafe method to defeat Sorn without the Blade.
+
+## Spending Gold in Ashenmere
+
+Gold accumulates quickly but has limited use if the DM does not provide spending opportunities. The following options give players meaningful ways to invest gold that connect to the campaign's stakes:
+
+- **Resistance Funding (Act II+):** Maren asks for 100 gp per safehouse established. Each safehouse provides one additional NPC ally in Q16's defence.
+- **Equipment for Resistance Fighters (Act III+):** Arming fighters costs 50 gp per squad of 10. Each armed squad reduces civilian casualties in Q11 and Q18 by 1d4.
+- **Twig's Services (Act II+):** Twig charges 25 gp per lock job outside of quest contexts.
+- **Black Market Potions (Act II+):** Pilar's contact sells Potions of Invisibility at 150 gp, Potions of Greater Healing at 100 gp.
+- **Temple Donations (Act III+):** Donating 200 gp to Brother Aldous's temple restores its consecration — provides a safe long rest location immune to scrying in the Old Quarter.
+- **Bribes (throughout):** City watch patrols can be bribed (25-50 gp) to look the other way. Useful during Q7, Q17, and curfew violations.

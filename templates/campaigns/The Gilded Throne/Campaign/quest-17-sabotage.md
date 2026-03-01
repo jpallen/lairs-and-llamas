@@ -22,7 +22,7 @@ The party's safehouse — a shuttered chandler's shop in the Dyers' Quarter with
 2. **The Bell Tower** — The abandoned Solemnite chapel in the Old Quarter. Warded and trapped. Patrols have been seen entering and leaving at regular intervals.
 3. **The Grand Theatre** — The Velvet Curtain playhouse in the Merchant Quarter. A performance is scheduled tonight. The ward stone is hidden somewhere inside, protected by something more subtle than muscle.
 
-**The clock:** The party has roughly 6 hours of darkness — from full dark (about 8 bells) until dawn (about 2 bells morning). Travel between locations takes approximately 30-45 minutes through the night streets.
+**The clock:** The party has roughly 6 hours of darkness — from full dark (about 8 bells) until dawn (about 2 bells morning). Travel between locations takes approximately 30-45 minutes through the night streets. Between targets, the travel time is enough for a short rest if the party walks rather than runs — each short rest taken costs 15 minutes from the clock, reducing the margin for error but potentially saving the party from fighting exhausted.
 
 **Planning considerations the party might raise:**
 

@@ -249,7 +249,7 @@ The war room is a large chamber dominated by a central table covered in maps, do
 **Examining the war room — the core intelligence:**
 
 - **The battle plans (automatic, no check needed):** A set of tactical documents detail Sorn's defence strategy. The Citadel garrison was 60 guards (knights and men-at-arms), now reduced to roughly 30 by the resistance assault outside. Twelve devils of various types are stationed throughout the building. And below the Citadel, in the ritual chamber, the portal to the Nine Hells is one hour from becoming permanent. After that, devils can cross freely and in unlimited numbers.
-- **The roster:** A list of every devil currently in Ashenmere — their type, location, and assigned task. This gives the party foreknowledge of what they will face in Quests 19 through 22.
+- **The roster:** A list of every devil currently in Ashenmere — their type, location, and assigned task. This gives the party foreknowledge of what they will face in Quests 20 through 22.
 - **The timeline:** Sorn's handwritten notes calculate the portal's stabilisation. The ritual began at sundown. It will become permanent one hour after the party enters the war room. This is the campaign's ticking clock.
 
 **The locked cabinet:** Against the north wall, a heavy iron cabinet is secured with a complex lock. DC 17 Thieves' Tools to pick, or DC 20 Strength to force (alerts anyone on the floor). Knock opens it automatically.
@@ -262,10 +262,77 @@ The war room is a large chamber dominated by a central table covered in maps, do
 
 These supplies were Sorn's personal emergency cache — intended for his own escape, not for his subordinates. The Potions of Fire Resistance are particularly valuable for the battles ahead, where devils deal fire damage constantly.
 
+**Short rest opportunity:** The war room is defensible — resistance fighters hold the corridor outside, and the heavy oak doors can be barred from within. The party can take a short rest here while reviewing the intelligence. This is the last safe rest before the finale.
+
 Connected to:
 
 - A4: Back to the second-floor landing.
-- Deeper into the Citadel: Stairs down to the inner sanctum (Quest 19 and beyond).
+- A6: The courtyard, where the horned devil breaches the wall.
+- Deeper into the Citadel: Stairs down to the inner sanctum (Quest 20 and beyond).
+
+## A6. The Devil's Breach
+
+As the party secures the war room, the ground shakes. A deafening crash echoes from below — something has smashed through the Citadel's outer courtyard wall. Dust rains from the ceiling. Maren's voice crackles through the sending stone:
+
+> "Something just came through the east wall. Something big. It's tearing through our people. We need you — now!"
+
+The party descends to the courtyard — a wide, flagstoned space between the Citadel's inner keep and the outer wall. A section of the east wall has been demolished, rubble scattered across the courtyard. Standing in the breach is a horned devil — twelve feet tall, wings spread, a barbed tail lashing behind it. Three resistance fighters lie motionless at its feet. Others are falling back in disarray.
+
+> The courtyard is chaos. Dust and rubble choke the air. Through the breach in the east wall, you see the thing that made it — a fiend the size of a siege engine, its body armoured in plates of dark red chitin, two massive horns curving forward from its skull like battering rams. Wings like torn leather spread behind it. It holds a resistance fighter in one clawed hand, examines them with contempt, and hurls them aside like a broken doll. Then it turns its burning eyes toward you.
+
+**Encounter:** 1 horned devil [HORNED_DEVIL] (CR 11). Base XP 7,200, adjusted x1 = 7,200. **Hard** for a party of 4 at level 10 (Deadly threshold 11,200). The horned devil is a serious threat but manageable for a rested party — which is why the short rest in the war room matters.
+
+**Horned devil behaviour:** It targets the strongest-looking combatant first, using its Hurl Flame (ranged spell attack, +7 to hit, 4d6 fire damage) on approach and then closing to melee with its Fork (+10 to hit, 2d8+6 piercing) and Tail (+10 to hit, 2d10+6 piercing plus Infernal Wound). At half HP, it takes flight (60 ft) and uses Hurl Flame from the air, forcing the party to use ranged attacks or find a way to ground it.
+
+**Resistance fighters:** Four resistance fighters [RESIST_A1-4] are still standing in the courtyard, fighting from behind rubble. They cannot damage the devil meaningfully but serve as distractions — each round, 1d2 of them make attacks that the devil ignores, drawing no mechanical effect but adding to the chaos of the scene. If the party takes more than 5 rounds to defeat the devil, one resistance fighter is killed each round thereafter.
+
+**Terrain:** The courtyard is 60 feet across. Rubble from the collapsed wall creates difficult terrain in a 20-foot radius around the breach. The rubble piles provide half cover. A balcony overlooking the courtyard (15 feet up, accessible from the second floor) provides three-quarters cover for ranged attackers.
+
+**When the horned devil falls:** It collapses with a thunderous crash, its body dissolving into black ichor and sulphurous smoke. The resistance fighters cheer — ragged, exhausted, but alive.
+
+**Loot:**
+
+- An *Infernal Fork* drops from the devil's dissolving form — a +2 trident wreathed in fading hellfire. Deals an additional 1d6 fire damage on each hit.
+- A *Devil's Eye Gem* — a smouldering ruby pried from the devil's brow. Worth 500 gp, or the bearer can cast *See Invisibility* once per long rest.
+- A chunk of *Infernal Iron* — rare crafting material, warm to the touch, useful for forging weapons or armour effective against fiends.
+- 150 gp in Calishite gold coins, scattered from a pouch the devil was carrying.
+
+**The Forgotten Armoury:** The devil's breach tore open a sealed room behind the eastern wall — a forgotten armoury, bricked up and lost to time. A DC 15 Perception check while examining the rubble reveals it.
+
+- *Shield of the Faithful* — a +2 shield engraved with a sunburst motif. Once per long rest, the wielder can cast *Shield of Faith* on themselves as a bonus action (no concentration required, lasts 1 minute).
+- 6 silvered crossbow bolts — effective against the devils the party will face in the remaining quests, bypassing their resistance to nonmagical weapon damage.
+
+**Aftermath:** With the courtyard secured and the horned devil destroyed, the way down to the ritual chamber is clear. The resistance holds the outer Citadel. Everything below belongs to Sorn.
+
+> Maren limps across the courtyard toward you, blood on her face, her short sword notched and dull. She looks at the smoking crater where the devil fell, then at you. "That's what's coming through the portal. More of those." She grips your arm. "End this. Whatever it takes."
+
+Connected to:
+
+- A5: Back to the war room.
+- Deeper into the Citadel: Stairs down to the ritual chamber (Quest 20).
+
+```yaml
+npcs:
+  - id: HORNED_DEVIL
+    type: Horned Devil
+    description: A towering fiend of dark red chitin and muscle, twelve feet tall with massive forward-curving horns and leathery wings. It reeks of brimstone and radiates palpable malice. It was the first major devil to cross through the partially stabilised portal — a vanguard sent to break the resistance's siege. It fights with brutal efficiency, combining ranged hellfire with devastating melee strikes.
+    ac: 18
+    maxHp: 178
+    speed: 20
+    flySpeed: 60
+  - id: RESIST_A1
+    type: Guard
+    description: A resistance fighter behind rubble, bloodied but still fighting.
+  - id: RESIST_A2
+    type: Guard
+    description: A resistance fighter with a crossbow, firing from behind a collapsed pillar.
+  - id: RESIST_A3
+    type: Guard
+    description: A resistance fighter dragging a wounded comrade behind cover.
+  - id: RESIST_A4
+    type: Guard
+    description: A resistance fighter with a spear, shouting encouragement to the others.
+```
 
 ---
 
@@ -287,15 +354,13 @@ Accessible only through the servant's passage route (A2). The staircase from the
 
 ---
 
-## After the War Room
+## After the Devil's Breach
 
-With the intelligence secured, the party knows the stakes: one hour before the portal becomes permanent. The resistance continues to fight outside, but the inner Citadel — the ritual chambers below — must be breached by the strike team. The party.
+With the horned devil destroyed, the courtyard secured, and the war room intelligence in hand, the party knows the stakes: less than one hour before the portal becomes permanent. The resistance holds the outer Citadel. Everything below — the ritual chambers, the portal, and Sorn himself — awaits.
 
-Maren's voice crackles through a sending stone (if the party has one) or a resistance runner reaches them:
+The ground continues to tremble. Red light pulses from the stairwell leading down. The portal is growing stronger.
 
-> "We're holding the outer walls, but something is wrong. The ground is shaking. There's light — red light — coming from below the Citadel. And something just came through the east wall. Something big."
-
-This leads directly into Quest 19.
+This leads directly into Quest 20.
 
 ---
 
@@ -316,6 +381,12 @@ This leads directly into Quest 19.
 | *Manual of Bodily Health* | Sorn's quarters (DC 18 Investigation, servant's passage only) | Hidden find; +2 Constitution |
 | *Portable Hole* | Sorn's quarters (DC 18 Investigation, servant's passage only) | Hidden find |
 | Mahavan portrait | Sorn's quarters (DC 18 Investigation, servant's passage only) | Destroying it = devils 1 round slower in finale |
+| *Infernal Fork* (+2 trident, +1d6 fire) | Horned devil (A6 loot) | Requires attunement |
+| *Devil's Eye Gem* (500 gp or *See Invisibility* 1/long rest) | Horned devil (A6 loot) | |
+| Infernal Iron chunk | Horned devil (A6 loot) | Rare crafting material |
+| 150 gp in Calishite gold | Horned devil (A6 loot) | Coin |
+| *Shield of the Faithful* (+2 shield) | Forgotten armoury (A6, DC 15 Perception) | *Shield of Faith* 1/long rest as bonus action |
+| 6 silvered crossbow bolts | Forgotten armoury (A6, DC 15 Perception) | Bypass devil damage resistances |
 
 ## Quest Connections
 
@@ -324,7 +395,6 @@ This leads directly into Quest 19.
 - **From Quest 15:** Allied forces recruited during the political arc engage the Citadel's front gate guards, reducing the party's combat burden on the front gate route from Far Deadly to Deadly.
 - **From Quest 16:** Brenn's sewer intelligence identifies the specific storm drain connecting to the Citadel basement, making the sewer route viable.
 - **From Quest 17:** The dismantling of the Citadel's protective wards makes this assault possible. Without Quest 17, the resistance could not breach the building.
-- **To Quest 19:** The breach triggers a response from the portal — a horned devil tears through the Citadel walls to attack the resistance.
-- **To Quest 20:** The war room intelligence reveals the path to the ritual chamber below.
+- **To Quest 20:** The war room intelligence reveals the path to the ritual chamber below. The horned devil encounter (A6) demonstrates the urgency — these are the creatures that will pour through the portal if it becomes permanent.
 - **To Quest 21:** The roster and timeline inform the party's approach to the inner sanctum.
 - **To Quest 22:** Destroying the Mahavan portrait in Sorn's quarters provides a tactical advantage in the finale.

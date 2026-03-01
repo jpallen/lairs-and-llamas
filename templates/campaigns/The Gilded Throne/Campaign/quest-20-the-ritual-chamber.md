@@ -172,6 +172,8 @@ Brother Aldous (if present) kneels beside the cracked brazier where the souls we
 
 > "They're free. After everything he did to them, they're free." He looks up, and his old eyes are hard. "Go. End this. I'll consecrate this chamber while you deal with Sorn."
 
+**Short rest opportunity:** With the portal collapsed and the erinyes defeated, the party has a brief window. The consecrated ground around the disrupted anchors is safe — fiendish energy has been purged from this space. A 10-minute short rest is possible before ascending to the throne room, though the sounds of fighting above grow louder. This is the last chance to recover before the finale.
+
 The staircase leads back up to the throne room, where Sorn has established his mockery of a royal court — see Quest 21.
 
 Connected to:
@@ -198,7 +200,7 @@ Connected to:
 ## Quest Connections
 
 - **From Quest 13:** The traitor's intelligence (or captured Sorn agent documents) provided the layout of the ritual chamber and the number of anchor points. Without this intel, the party enters blind and must discover the anchors by exploration.
-- **From Quest 19:** The party descends to this chamber after fighting through the devil's vanguard. The staircase down is behind the throne room.
+- **From Quest 18:** The party descends to this chamber after fighting through the Citadel and the horned devil in the courtyard (Q18, A6). The staircase down is behind the throne room.
 - **To Quest 21:** After disrupting the anchors, the party ascends to the throne room, where Sorn has staged his pretender's court.
 - **From Quest 10/14:** Brother Aldous's texts provide advantage on the Arcana check at Anchor 2. If Aldous is present, he can identify the soul trap at Anchor 3 automatically.
 - **From Quest 12:** The Blade of Tyr's Witness is the primary means to slay Sorn, but the banishment conduit here provides an alternative if the Blade was lost or never found.

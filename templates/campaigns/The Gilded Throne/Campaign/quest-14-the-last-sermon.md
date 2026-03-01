@@ -256,6 +256,23 @@ The consecration fails. No blessed weapon. No church support. No divine ally. Th
 
 This is a significant intelligence asset. In Act IV, the party can use the stone to feed Sorn false information — fake troop movements, invented betrayals, or misleading reports about the party's location and intentions. The DM should track what information the party transmits and have Sorn react accordingly.
 
+### Celebration: The Old Quarter Feast
+
+If the sermon is completed and the enemies defeated, the people of the Old Quarter celebrate. This is a brief moment of warmth and levity before Act IV's intensity — the DM should play it with sincerity.
+
+> The sun is setting over the Old Quarter, and the square that was a battlefield an hour ago is now alive with something you haven't seen in Ashenmere in weeks: joy. Someone has dragged tables from the bakery and the chandler's shop and lined them end to end across the cobblestones. Food appears — bread, cheese, smoked fish, a barrel of ale rolled out from a cellar. A fiddler sits on the edge of the fountain and plays, badly at first, then better. Children chase each other between the tables. Lanterns are strung from the chapel eaves to the rooftops opposite, casting warm golden light across the square.
+
+> Brother Aldous sits at the head of the longest table, a cup of ale untouched before him, watching his city celebrate with tears in his eyes. He laughs — a genuine, startled laugh — when a child climbs onto his lap and demands a story about dragons. It is the first time you have heard him laugh.
+
+The feast is a purely narrative moment. There is no combat, no urgency, and no hidden threat. The DM should give each player a chance to interact:
+
+- **Grundar the blacksmith** challenges party members to arm-wrestling. DC 16 Athletics to beat him. The winner earns bragging rights and a promise: "First weapon I reforge for you — I'll put my best work into it." (This is flavour on top of his existing offer, not a separate mechanical benefit.)
+- **Children** ask the party to tell stories of their adventures. A DC 10 Performance check earns delighted applause. A natural 20 earns a crude charcoal portrait drawn by a solemn eight-year-old — worth nothing, but the player should keep it.
+- **Maren** (if present) stands apart for a moment, watching the crowd. If a party member approaches, she speaks quietly: "My mother would have loved this. She always said the Old Quarter had the best fiddlers." She raises her cup. "To Thera Loomwright. And to what comes next."
+- **A toast:** At some point, the crowd raises their cups to the party. The fiddler stops. Sixty voices speak the party's names. Then the music starts again, and the night continues.
+
+This scene should last as long as the players want it to. When they are ready to move on, the celebration fades naturally into the night, and the work of Act IV begins.
+
 ### Side Opportunity: Grundar the Smith
 
 After the sermon (completed or not), a retired dwarf smith named Grundar [GRUNDAR] approaches the party. He watched the fight from his shop window on the west side of the square and was impressed.

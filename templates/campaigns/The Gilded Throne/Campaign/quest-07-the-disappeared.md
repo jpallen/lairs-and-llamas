@@ -40,7 +40,7 @@ npcs:
   - id: MAREN
     name: Maren Loomwright
     type: Human Commoner
-    description: A wiry woman in her forties with sharp eyes, calloused hands, and ink-stained fingers. She wears a dark wool cloak over practical clothing and keeps a small knife at her belt — more tool than weapon. She is the quiet heart of Ashenmere's growing resistance against Sorn's council, running a network of informants from the back rooms of guild halls and taverns. She is not a fighter. In combat she hides, runs, or tries to talk her way out. Her value is knowledge — she knows every tunnel, shortcut, and bolt-hole in the undercity.
+    description: A young woman in her mid-twenties with dark hair pulled back sharply and fierce eyes. She wears a dark wool cloak over practical clothing and keeps a small knife at her belt — more tool than weapon. She is the quiet heart of Ashenmere's growing resistance against Sorn's council, running a network of informants from the back rooms of guild halls and taverns. She is not a fighter. In combat she hides, runs, or tries to talk her way out. Her value is knowledge — she knows every tunnel, shortcut, and bolt-hole in the undercity.
     abilityScores:
       str: 8
       dex: 12
@@ -82,12 +82,26 @@ The tunnel narrows and passes through what was once a stone archway. Maren stops
 
 **Maren's warning:** "They've trapped the approaches. That means they're guarding something they don't want found."
 
+**The Dwarven Door (optional shortcut):**
+
+At the halfway point, beyond the trapped corridor, a side passage leads to an ancient stone door set into the tunnel wall. Maren stops and runs her hand across it.
+
+> "I remember this. There's a passage behind here that connects further in — past the guard post, straight to the prison corridor. But I could never get it open as a child."
+
+The door bears a dwarven mechanism — three concentric stone rings that must be rotated to align their carved runes with a symbol etched above the lintel.
+
+- **DC 12 Intelligence (Investigation):** Study the mechanism and work out the alignment through trial and error.
+- **DC 10 Intelligence (History) for dwarves or characters proficient in mason's tools:** Recognise the mechanism type and solve it more quickly.
+- **On failure:** The rings reset with a grinding noise that echoes through the tunnels. If the guards in A3 haven't been dealt with, they hear the noise and move to investigate in 3 rounds.
+- **On success:** The door grinds open, revealing a narrow passage that bypasses A3 entirely, emerging directly at A4 (the prison corridor). This gives puzzle-oriented parties an alternate path that avoids the guard post combat entirely.
+
 **Stealth through the tunnels:** If the party is moving quietly (group Stealth check, DC 12), they can reach A3 undetected. Maren rolls her own Stealth (+2) separately — if she fails but the party succeeds, she knocks a loose stone and the party has 1 round to react before the guards in A3 hear it.
 
 Connected to:
 
 - A1: Back to the undercity entrance.
 - A3: The guard post ahead, where the tunnels widen.
+- A4: Via the dwarven door shortcut (bypasses A3).
 
 ## A3. The Guard Post
 
@@ -214,7 +228,7 @@ A larger chamber at the end of the prison corridor, furnished as a command post.
 
 > The corridor opens into a wider room lit by a brazier and two oil lamps. A heavyset man in polished chain mail sits behind a desk, reading a document by lamplight. A longsword with an unusually bright blade rests across the desk within easy reach. Two guards flank the far door, standing at attention.
 
-**The knight commander — Captain Aldren Voss** — is a veteran soldier who has sold his loyalty to Sorn in exchange for power and coin. He is not stupid, not cruel for cruelty's sake, but utterly pragmatic. He views the prisoners as political necessities — tools to maintain order. He does not know about the intellect devourer in the warden.
+**The knight commander — Captain Aldren Greaves** — is a veteran soldier who has sold his loyalty to Sorn in exchange for power and coin. He is not stupid, not cruel for cruelty's sake, but utterly pragmatic. He views the prisoners as political necessities — tools to maintain order. He does not know about the intellect devourer in the warden.
 
 **If the party is undetected:**
 
@@ -249,7 +263,7 @@ Connected to:
 ```yaml
 npcs:
   - id: COMMANDER
-    name: Captain Aldren Voss
+    name: Captain Aldren Greaves
     type: Knight
     description: A heavyset man in his fifties with a grey-streaked beard, cold eyes, and the bearing of a career soldier. He wears polished chain mail and keeps a +1 longsword within arm's reach at all times. He is efficient, pragmatic, and loyal to whoever pays best — currently Sorn, through intermediaries. He does not enjoy cruelty but does not lose sleep over it either.
     abilityScores:
@@ -375,14 +389,6 @@ Connected to:
 
 - A1: The undercity entrance, now a known access point.
 - Twig's shop on Millhook Street: Available for future visits.
-
-```yaml
-npcs:
-  - id: TORBEN
-    name: Torben
-    type: Human Commoner
-    description: A stocky, sunburned dock worker with a thick neck and honest eyes. He's been working the Ashenmere docks for fifteen years and is quietly loyal to Brokka. He saw the smuggled crate being delivered to the Tanners' Quarter last week.
-```
 
 ---
 
